@@ -1,0 +1,363 @@
+Copy
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki finansowe szpitali klinicznych w Polsce 2023</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --background: #121212;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --accent: #3498db;
+            --positive: #27ae60;
+            --negative: #e74c3c;
+            --neutral: #f1c40f;
+            --border: #333333;
+            --hover: #2a2a2a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: var(--hover);
+        }
+        
+        .btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        
+        .hospital-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+        .neutral { color: var(--neutral); }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .details-content {
+            margin-top: 20px;
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        /* Tryb mobilny */
+        .mobile-mode {
+            padding: 10px;
+        }
+        
+        .mobile-mode .container {
+            max-width: 100%;
+        }
+        
+        .mobile-mode .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .mobile-mode .hospital-buttons {
+            grid-template-columns: 1fr;
+        }
+        
+        .mobile-mode .chart-container {
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Wyniki finansowe szpitali klinicznych w Polsce 2023</h1>
+        </div>
+        
+        <div class="buttons-container">
+            <button class="btn active" id="btnOverview">Wyniki szpitali - zagregowane</button>
+            <button class="btn" id="btnIndividual">Wyniki poszczególnych szpitali</button>
+            <button class="btn" id="mobileToggle">Tryb mobilny</button>
+        </div>
+        
+        <div id="overviewSection">
+            <div class="card">
+                <h2>Porównanie wyników finansowych</h2>
+                <div class="chart-container">
+                    <canvas id="profitChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="individualSection" class="hidden">
+            <button class="btn back-btn" id="backToMain">« Powrót do widoku głównego</button>
+            <h2>Wybierz szpital</h2>
+            <div class="hospital-buttons" id="hospitalButtons"></div>
+            
+            <div id="hospitalDetails" class="hidden">
+                <button class="btn back-btn" id="backToList">« Powrót do listy szpitali</button>
+                <div class="card">
+                    <h2 id="hospitalName">Nazwa szpitala</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card" id="revenueCard">
+                            <h3>Przychody</h3>
+                            <div class="stat-value" id="revenueValue">0</div>
+                        </div>
+                        <div class="stat-card" id="costsCard">
+                            <h3>Koszty</h3>
+                            <div class="stat-value" id="costsValue">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Zysk/Strata netto</h3>
+                            <div class="stat-value" id="profitValue">0</div>
+                        </div>
+                    </div>
+                    <div class="details-content hidden" id="detailsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hospitalData = [
+            {
+                name: "UCK Gdańsk",
+                revenue: 1780.05,
+                costs: 1673.91,
+                profit: 155.45,
+                costStructure: {
+                    amortyzacja: 56.21,
+                    materialy: 651.33,
+                    uslugi: 512.79,
+                    podatki: 0.57,
+                    wynagrodzenia: 372.16,
+                    ubezpieczenia: 76.02,
+                    pozostale: 4.82
+                }
+            },
+            {
+                name: "USK Wrocław",
+                revenue: 1351.62,
+                costs: 1326.12,
+                profit: 35.84,
+                costStructure: {
+                    amortyzacja: 43.99,
+                    materialy: 528.09,
+                    uslugi: 175.61,
+                    podatki: 5.76,
+                    wynagrodzenia: 475.74,
+                    ubezpieczenia: 94.68,
+                    pozostale: 2.26
+                }
+            },
+            {
+                name: "UCK Warszawa",
+                revenue: 1789.53,
+                costs: 1785.88,
+                profit: -33.99,
+                costStructure: {
+                    amortyzacja: 41.16,
+                    materialy: 644.53,
+                    uslugi: 260.08,
+                    podatki: 7.36,
+                    wynagrodzenia: 697.34,
+                    ubezpieczenia: 132.72,
+                    pozostale: 2.68
+                }
+            }
+            // Dodaj resztę szpitali z oryginalnych danych, jeśli potrzebujesz
+        ];
+
+        let profitChart;
+
+        window.onload = function() {
+            initializeUI();
+            createHospitalButtons();
+            createProfitChart();
+        };
+
+        function initializeUI() {
+            document.getElementById('btnOverview').addEventListener('click', () => showSection('overviewSection'));
+            document.getElementById('btnIndividual').addEventListener('click', () => showSection('individualSection'));
+            document.getElementById('backToMain').addEventListener('click', () => showSection('overviewSection'));
+            document.getElementById('backToList').addEventListener('click', () => document.getElementById('hospitalDetails').classList.add('hidden'));
+
+            document.getElementById('mobileToggle').addEventListener('click', () => {
+                document.body.classList.toggle('mobile-mode');
+            });
+
+            document.getElementById('revenueCard').addEventListener('click', () => showDetails('revenue'));
+            document.getElementById('costsCard').addEventListener('click', () => showDetails('costs'));
+        }
+
+        function showSection(sectionId) {
+            document.getElementById('overviewSection').classList.add('hidden');
+            document.getElementById('individualSection').classList.add('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            document.getElementById('btnOverview').classList.toggle('active', sectionId === 'overviewSection');
+            document.getElementById('btnIndividual').classList.toggle('active', sectionId === 'individualSection');
+        }
+
+        function createHospitalButtons() {
+            const container = document.getElementById('hospitalButtons');
+            hospitalData.forEach(hospital => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = hospital.name;
+                btn.addEventListener('click', () => showHospitalDetails(hospital));
+                container.appendChild(btn);
+            });
+        }
+
+        function showHospitalDetails(hospital) {
+            document.getElementById('hospitalDetails').classList.remove('hidden');
+            document.getElementById('hospitalName').textContent = hospital.name;
+            document.getElementById('revenueValue').textContent = `${hospital.revenue.toFixed(2)} mln zł`;
+            document.getElementById('costsValue').textContent = `${hospital.costs.toFixed(2)} mln zł`;
+            document.getElementById('profitValue').textContent = `${hospital.profit.toFixed(2)} mln zł`;
+            document.getElementById('profitValue').className = `stat-value ${hospital.profit >= 0 ? 'positive' : 'negative'}`;
+
+            const detailsContent = document.getElementById('detailsContent');
+            detailsContent.classList.add('hidden');
+            window.currentHospital = hospital; // Przechowaj aktualny szpital dla szczegółów
+        }
+
+        function showDetails(type) {
+            const detailsContent = document.getElementById('detailsContent');
+            detailsContent.classList.remove('hidden');
+            
+            if (type === 'revenue') {
+                detailsContent.innerHTML = `<h3>Szczegóły przychodów</h3><p>Całkowite przychody: ${window.currentHospital.revenue.toFixed(2)} mln zł</p><p>Szczegółowe źródła przychodów nie są dostępne w danych.</p>`;
+            } else if (type === 'costs') {
+                const cs = window.currentHospital.costStructure;
+                detailsContent.innerHTML = `
+                    <h3>Szczegóły kosztów</h3>
+                    <p>Całkowite koszty: ${window.currentHospital.costs.toFixed(2)} mln zł</p>
+                    <ul>
+                        <li>Amortyzacja: ${cs.amortyzacja.toFixed(2)} mln zł</li>
+                        <li>Materiały: ${cs.materialy.toFixed(2)} mln zł</li>
+                        <li>Usługi: ${cs.uslugi.toFixed(2)} mln zł</li>
+                        <li>Podatki: ${cs.podatki.toFixed(2)} mln zł</li>
+                        <li>Wynagrodzenia: ${cs.wynagrodzenia.toFixed(2)} mln zł</li>
+                        <li>Ubezpieczenia: ${cs.ubezpieczenia.toFixed(2)} mln zł</li>
+                        <li>Pozostałe: ${cs.pozostale.toFixed(2)} mln zł</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function createProfitChart() {
+            if (profitChart) profitChart.destroy();
+            const ctx = document.getElementById('profitChart').getContext('2d');
+            profitChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hospitalData.map(h => h.name),
+                    datasets: [{
+                        label: 'Zysk/Strata netto (mln zł)',
+                        data: hospitalData.map(h => h.profit),
+                        backgroundColor: hospitalData.map(h => h.profit >= 0 ? 'rgba(39, 174, 96, 0.7)' : 'rgba(231, 76, 60, 0.7)')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            showSection('individualSection');
+                            showHospitalDetails(hospitalData[index]);
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
