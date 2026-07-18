@@ -1,0 +1,20 @@
+{
+  "name": "JGP Kalkulator",
+  "short_name": "JGP",
+  "description": "Mobilny katalog i kalkulator 702 grup JGP z załącznika 1a do zarządzenia NFZ 46/2026/DSOZ.",
+  "lang": "pl-PL",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#edf4f2",
+  "theme_color": "#0b6b61",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
