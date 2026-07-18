@@ -3,7 +3,7 @@
   "short_name": "JGP",
   "description": "Mobilny katalog i kalkulator 702 grup JGP z załącznika 1a do zarządzenia NFZ 46/2026/DSOZ.",
   "lang": "pl-PL",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
