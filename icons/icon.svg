@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Tymczasowa ikona JGP</title>
+  <defs>
+    <linearGradient id="bg" x1="70" y1="40" x2="440" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#118579"/>
+      <stop offset="1" stop-color="#07534b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M136 149c0-18 15-33 33-33h174c18 0 33 15 33 33v214c0 18-15 33-33 33H169c-18 0-33-15-33-33V149Z" fill="#fff" opacity=".14"/>
+  <path d="M188 208h136M188 256h136M188 304h78" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" opacity=".92"/>
+  <circle cx="327" cy="326" r="61" fill="#f2a261"/>
+  <path d="M327 291v70M292 326h70" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/>
+  <text x="256" y="178" fill="#fff" font-family="Arial, sans-serif" font-size="62" font-weight="700" text-anchor="middle">JGP</text>
+</svg>
