@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b6b61">
+  <meta name="description" content="Mobilny katalog i kalkulator 702 grup JGP z załącznika 1a do zarządzenia NFZ 46/2026/DSOZ.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JGP">
+  <title>JGP Kalkulator</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">JGP</div>
+      <div class="brand-copy">
+        <p class="eyebrow">Wersja testowa · katalog NFZ</p>
+        <h1>Kalkulator JGP</h1>
+      </div>
+      <button id="install-help-button" class="icon-button" type="button" aria-label="Jak zainstalować aplikację" title="Instalacja na iPhone">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      </button>
+    </header>
+
+    <main>
+      <section class="search-section" aria-labelledby="search-label">
+        <div class="section-heading">
+          <div>
+            <p id="catalog-label" class="eyebrow">Załącznik 1a · 702 grupy</p>
+            <h2 id="search-label">Znajdź grupę</h2>
+          </div>
+          <span id="connection-badge" class="status-badge">Online</span>
+        </div>
+
+        <form id="search-form" class="search-form" role="search">
+          <label class="sr-only" for="search-input">Kod grupy, kod produktu lub nazwa JGP</label>
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+          <input id="search-input" type="search" value="N01" placeholder="N01, 5.51.01…, poród…" autocomplete="off" spellcheck="false">
+          <button class="search-button" type="submit">Szukaj</button>
+        </form>
+        <div id="suggestions" class="suggestions" aria-live="polite"></div>
+      </section>
+
+      <section id="result-card" class="result-card" aria-live="polite">
+        <div class="result-header">
+          <span id="group-code" class="group-code">N01</span>
+          <div class="result-name">
+            <h2 id="group-name">Poród *</h2>
+            <p id="group-product-code" class="muted">Kod produktu: 5.51.01.0013001</p>
+            <p id="group-section" class="muted">Położnictwo i opieka nad noworodkami</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Tryb hospitalizacji</span>
+            <select id="hospitalization-mode"></select>
+          </label>
+          <label class="field">
+            <span>Cena za punkt</span>
+            <span class="input-with-unit">
+              <input id="point-price" type="number" value="1.96" min="0" step="0.01" inputmode="decimal">
+              <span>zł</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat">
+            <span>Punkty JGP</span>
+            <strong id="points-value">1 994</strong>
+            <small>pkt</small>
+          </article>
+          <article class="stat">
+            <span>Wartość podstawowa</span>
+            <strong id="base-value">3 908,24 zł</strong>
+          </article>
+          <article class="stat accent">
+            <span>Łączny współczynnik</span>
+            <strong id="combined-factor">1,00</strong>
+          </article>
+        </div>
+
+        <dl class="catalog-details" aria-label="Dodatkowe parametry z katalogu NFZ">
+          <div>
+            <dt>Dni finansowane grupą</dt>
+            <dd id="financed-days">—</dd>
+          </div>
+          <div>
+            <dt>Osobodzień ponad ryczałt</dt>
+            <dd id="extra-day-points">—</dd>
+          </div>
+        </dl>
+
+        <div class="coefficient-section">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Ustawienia użytkownika</p>
+              <h3>Współczynniki</h3>
+            </div>
+            <button id="clear-coefficients" class="text-button" type="button">Wyczyść</button>
+          </div>
+
+          <div class="coefficient-list">
+            <label class="coefficient-option" data-rule="bridge">
+              <input id="factor-bridge" type="checkbox" data-factor="1.30">
+              <span class="checkmark" aria-hidden="true"></span>
+              <span class="coefficient-copy">
+                <strong>Pomostowy</strong>
+                <small>Warunkowy · N01</small>
+              </span>
+              <b>1,30</b>
+            </label>
+
+            <label class="coefficient-option" data-rule="anesthesia">
+              <input id="factor-anesthesia" type="checkbox" data-factor="1.21">
+              <span class="checkmark" aria-hidden="true"></span>
+              <span class="coefficient-copy">
+                <strong>Znieczulenie do porodu</strong>
+                <small>Po spełnieniu warunków · N01</small>
+              </span>
+              <b>1,21</b>
+            </label>
+
+            <label class="coefficient-option" data-rule="neonate">
+              <input id="factor-neonate" type="checkbox" data-factor="1.20">
+              <span class="checkmark" aria-hidden="true"></span>
+              <span class="coefficient-copy">
+                <strong>Połączenie N01 + N20</strong>
+                <small>Dla wartości wybranej pozycji</small>
+              </span>
+              <b>1,20</b>
+            </label>
+
+            <label class="coefficient-option custom-option">
+              <input id="factor-custom-enabled" type="checkbox">
+              <span class="checkmark" aria-hidden="true"></span>
+              <span class="coefficient-copy">
+                <strong>Własny współczynnik</strong>
+                <small>Wartość użytkownika</small>
+              </span>
+              <input id="factor-custom" class="custom-factor" type="number" value="1.27" min="0" step="0.01" inputmode="decimal" aria-label="Własny współczynnik" disabled>
+            </label>
+          </div>
+
+          <p id="factor-formula" class="formula">Brak wybranego współczynnika.</p>
+        </div>
+
+        <div class="total-panel">
+          <div>
+            <span>Szacowana wartość</span>
+            <strong id="total-value">3 908,24 zł</strong>
+          </div>
+          <p id="total-equation">1 994 pkt × 1,96 zł × 1,00</p>
+        </div>
+      </section>
+
+      <section id="empty-state" class="empty-state" hidden>
+        <div class="empty-icon" aria-hidden="true">?</div>
+        <h2>Nie znaleziono grupy</h2>
+        <p>Sprawdź kod grupy, kod produktu albo fragment nazwy. Katalog zawiera 702 grupy JGP.</p>
+      </section>
+
+      <aside class="notice">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <p>Punktacje pochodzą z katalogu 1a. Cena punktu i współczynniki są ustawieniami użytkownika; aplikacja nie potwierdza prawa do ich zastosowania. Kilka współczynników łączymy wzorem: <strong>K = suma W − (n − 1)</strong>.</p>
+      </aside>
+
+      <details class="sources">
+        <summary>Wersja danych i źródła</summary>
+        <div>
+          <p><strong id="source-order">46/2026/DSOZ</strong> · zarządzenie z 30.04.2026 r.</p>
+          <p><span id="source-catalog">Załącznik 1a – katalog grup</span> · <span id="source-count">702 grupy JGP</span>.</p>
+          <p>Cena punktu i ustawienia są zapisywane wyłącznie na urządzeniu.</p>
+          <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Zarządzenie NFZ 46/2026/DSOZ</a>
+        </div>
+      </details>
+    </main>
+
+    <footer>
+      <span>JGP Kalkulator</span>
+      <span>v0.2 · katalog 1a</span>
+    </footer>
+  </div>
+
+  <dialog id="install-dialog" class="install-dialog">
+    <form method="dialog">
+      <div class="dialog-handle" aria-hidden="true"></div>
+      <div class="dialog-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      </div>
+      <h2>Dodaj na iPhone</h2>
+      <ol>
+        <li>Otwórz tę stronę w <strong>Safari</strong>.</li>
+        <li>Naciśnij ikonę <strong>Udostępnij</strong>.</li>
+        <li>Wybierz <strong>Do ekranu początkowego</strong>, a potem „Dodaj”.</li>
+      </ol>
+      <button class="primary-button" value="close">Rozumiem</button>
+    </form>
+  </dialog>
+
+  <script src="data/jgp-data.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
