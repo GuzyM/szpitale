@@ -2,11 +2,14 @@
 
 const CATALOG = window.JGP_CATALOG || { meta: {}, groups: [] };
 const CHARACTERISTICS = window.JGP_CHARACTERISTICS || { meta: {}, blocks: {} };
+const CONTRACT_DATA = window.NFZ_CONTRACT || { meta: {}, scopes: [] };
 const GROUPS = CATALOG.groups;
 const BLOCKS = CHARACTERISTICS.blocks;
+const CONTRACT_SCOPES = CONTRACT_DATA.scopes || [];
 const GROUP_BY_CODE = new Map(GROUPS.map((group) => [group.code, group]));
 
-const STORAGE_KEY = "jgp-calculator-v03";
+const STORAGE_KEY = "hospitalapp-jgp-v04";
+const LEGACY_STORAGE_KEY = "jgp-calculator-v03";
 const MODE_LABELS = {
   ordinary: "Hospitalizacja",
   planned: "Hospitalizacja planowa",
@@ -33,8 +36,24 @@ const elements = {
   groupName: document.querySelector("#group-name"),
   groupProductCode: document.querySelector("#group-product-code"),
   groupSection: document.querySelector("#group-section"),
+  contractPanel: document.querySelector("#contract-panel"),
+  contractStatus: document.querySelector("#contract-status"),
+  contractVerifiedContent: document.querySelector("#contract-verified-content"),
+  contractEmpty: document.querySelector("#contract-empty"),
+  contractScopeCode: document.querySelector("#contract-scope-code"),
+  contractScopeName: document.querySelector("#contract-scope-name"),
+  contractPointPrice: document.querySelector("#contract-point-price"),
+  contractUnitCode: document.querySelector("#contract-unit-code"),
+  contractUnitName: document.querySelector("#contract-unit-name"),
+  contractAgreementCode: document.querySelector("#contract-agreement-code"),
+  contractValidity: document.querySelector("#contract-validity"),
+  contractAdditions: document.querySelector("#contract-additions"),
+  contractAdditionList: document.querySelector("#contract-addition-list"),
+  contractSource: document.querySelector("#contract-source"),
+  useContractPrice: document.querySelector("#use-contract-price"),
   mode: document.querySelector("#hospitalization-mode"),
   pointPrice: document.querySelector("#point-price"),
+  pointPriceSource: document.querySelector("#point-price-source"),
   pointsValue: document.querySelector("#points-value"),
   baseValue: document.querySelector("#base-value"),
   combinedFactor: document.querySelector("#combined-factor"),
@@ -61,7 +80,9 @@ const elements = {
   sourceOrder: document.querySelector("#source-order"),
   sourceCatalog: document.querySelector("#source-catalog"),
   sourceCount: document.querySelector("#source-count"),
-  sourceCharacteristics: document.querySelector("#source-characteristics")
+  sourceCharacteristics: document.querySelector("#source-characteristics"),
+  sourceApiLabel: document.querySelector("#source-api-label"),
+  sourceApiDate: document.querySelector("#source-api-date")
 };
 
 const numberFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -70,6 +91,11 @@ const moneyFormatter = new Intl.NumberFormat("pl-PL", {
   style: "currency",
   currency: "PLN",
   minimumFractionDigits: 2
+});
+const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
 });
 
 const BLOCK_TO_GROUPS = buildBlockToGroupMap();
@@ -83,15 +109,21 @@ function defaultState() {
     groupCode: "N01",
     modeByGroup: {},
     price: 1.96,
-    customFactor: 1,
+    customFactorByGroup: {},
     coefficientEnabledByGroup: {}
   };
 }
 
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return { ...defaultState(), ...saved };
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const saved = raw ? JSON.parse(raw) : {};
+    const merged = { ...defaultState(), ...saved };
+    merged.customFactorByGroup = { ...(saved.customFactorByGroup || {}) };
+    if (saved.customFactor && saved.groupCode && merged.customFactorByGroup[saved.groupCode] == null) {
+      merged.customFactorByGroup[saved.groupCode] = saved.customFactor;
+    }
+    return merged;
   } catch {
     return defaultState();
   }
@@ -111,6 +143,27 @@ function normalize(value) {
     .toLocaleUpperCase("pl-PL")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function contractMatchesForGroup(group) {
+  const matches = [];
+  CONTRACT_SCOPES.forEach((scope) => {
+    const unitProduct = (scope.unitProducts || []).find((product) => (
+      product.groupCode === group.code || product.productCode === group.productCode
+    ));
+    if (unitProduct) matches.push({ scope, unitProduct });
+  });
+  return matches;
+}
+
+function primaryContractMatch(group = selectedGroup) {
+  return contractMatchesForGroup(group)[0] || null;
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? String(value) : dateFormatter.format(date);
 }
 
 function addBlockGroup(mapping, blockCode, groupCode) {
@@ -155,9 +208,18 @@ function blockMatchContext(block, query) {
 }
 
 function directGroupMatch(group, query) {
+  const contractMatches = contractMatchesForGroup(group);
+  const contractText = contractMatches.flatMap(({ scope, unitProduct }) => [
+    scope.productCode,
+    scope.productName,
+    unitProduct.productCode,
+    unitProduct.productName,
+    CONTRACT_DATA.meta.agreementCode
+  ]).join(" ");
   return normalize(group.code).includes(query)
     || normalize(group.name).includes(query)
-    || normalize(group.productCode).includes(query);
+    || normalize(group.productCode).includes(query)
+    || normalize(contractText).includes(query);
 }
 
 function findMatches(value) {
@@ -169,7 +231,14 @@ function findMatches(value) {
   GROUPS.forEach((group) => {
     if (!directGroupMatch(group, query)) return;
     included.add(group.code);
-    matches.push({ group, context: "Kod, produkt lub nazwa grupy" });
+    const inContract = contractMatchesForGroup(group).some(({ scope }) => (
+      normalize(scope.productCode).includes(query)
+      || normalize(CONTRACT_DATA.meta.agreementCode).includes(query)
+    ));
+    matches.push({
+      group,
+      context: inContract ? "Zakres lub umowa w API NFZ" : "Kod, produkt lub nazwa grupy"
+    });
   });
 
   if (query.length < 3) return matches;
@@ -213,6 +282,62 @@ function renderSuggestions(matches) {
   });
 }
 
+function renderContract(group) {
+  const match = primaryContractMatch(group);
+  const hasMatch = Boolean(match);
+  elements.contractPanel.classList.toggle("unavailable", !hasMatch);
+  elements.contractStatus.classList.toggle("unavailable", !hasMatch);
+  elements.contractVerifiedContent.hidden = !hasMatch;
+  elements.contractEmpty.hidden = hasMatch;
+  elements.contractStatus.textContent = hasMatch ? "Potwierdzone w API" : "Brak w profilu";
+  elements.contractAdditionList.replaceChildren();
+
+  if (!hasMatch) {
+    elements.contractSource.textContent = `Profil: ${CONTRACT_DATA.meta.profileLabel || "brak danych"}. Źródło: API Umowy NFZ.`;
+    return;
+  }
+
+  const { scope, unitProduct } = match;
+  elements.contractScopeCode.textContent = scope.productCode;
+  elements.contractScopeName.textContent = scope.productName;
+  elements.contractPointPrice.textContent = moneyFormatter.format(scope.averagePointPrice);
+  elements.contractUnitCode.textContent = unitProduct.productCode;
+  elements.contractUnitName.textContent = unitProduct.productName;
+  elements.contractAgreementCode.textContent = CONTRACT_DATA.meta.agreementCode || "—";
+  elements.contractValidity.textContent = `${formatDate(scope.dateFrom)}–${formatDate(scope.dateTo)}`;
+  elements.useContractPrice.dataset.price = String(scope.averagePointPrice);
+
+  const additionalProducts = (scope.additionalProducts || []).filter((product) => (
+    !product.applicableGroupCodes
+    || product.applicableGroupCodes.includes(group.code)
+  ));
+  elements.contractAdditions.hidden = additionalProducts.length === 0;
+  additionalProducts.forEach((product) => {
+    const item = document.createElement("article");
+    const code = document.createElement("strong");
+    const name = document.createElement("span");
+    const note = document.createElement("small");
+    item.className = "contract-addition-item";
+    code.textContent = `${product.productCode} · ${numberFormatter.format(product.points)} pkt`;
+    name.textContent = product.productName;
+    note.textContent = product.note;
+    item.append(code, name, note);
+    elements.contractAdditionList.appendChild(item);
+  });
+
+  elements.contractSource.textContent = `Źródło: API Umowy NFZ · aktualizacja umowy ${formatDate(CONTRACT_DATA.meta.agreementUpdatedAt)}.`;
+}
+
+function updatePointPriceSource() {
+  const match = primaryContractMatch();
+  const enteredPrice = Number(elements.pointPrice.value);
+  const isContractPrice = match
+    && Math.abs(enteredPrice - Number(match.scope.averagePointPrice)) < 0.0001;
+  elements.pointPriceSource.textContent = isContractPrice
+    ? "zgodna z API NFZ"
+    : "wartość użytkownika";
+}
+
 function renderModes(group) {
   elements.mode.replaceChildren();
   Object.keys(MODE_LABELS).forEach((modeKey) => {
@@ -231,7 +356,7 @@ function restoreCoefficientControls() {
   const enabled = Boolean(state.coefficientEnabledByGroup[selectedGroup.code]);
   elements.coefficientEnabled.checked = enabled;
   elements.coefficientControls.hidden = !enabled;
-  elements.customFactor.value = Number(state.customFactor) || 1;
+  elements.customFactor.value = Number(state.customFactorByGroup[selectedGroup.code]) || 1;
 }
 
 function splitMedicalCode(item) {
@@ -395,6 +520,7 @@ function selectGroup(group) {
     ? "—"
     : `${numberFormatter.format(group.extraDay)} pkt`;
 
+  renderContract(group);
   renderModes(group);
   restoreCoefficientControls();
   renderGrouping(group);
@@ -425,11 +551,12 @@ function updateCalculation() {
   elements.totalValue.textContent = moneyFormatter.format(total);
   elements.totalEquation.textContent = `${numberFormatter.format(points)} pkt × ${decimalFormatter.format(price)} zł × ${decimalFormatter.format(factor)}`;
   elements.factorFormula.textContent = elements.coefficientEnabled.checked
-    ? `Zastosowano ręcznie wpisany współczynnik ${decimalFormatter.format(factor)}.`
+    ? `Zastosowano ręcznie wpisany współczynnik ${decimalFormatter.format(factor)}. To ustawienie użytkownika, nie wartość pobrana z API NFZ.`
     : "Współczynnik nie jest stosowany.";
+  updatePointPriceSource();
 
   state.price = price;
-  state.customFactor = Number(elements.customFactor.value) || 1;
+  state.customFactorByGroup[selectedGroup.code] = Number(elements.customFactor.value) || 1;
   state.modeByGroup[selectedGroup.code] = elements.mode.value;
   state.coefficientEnabledByGroup[selectedGroup.code] = elements.coefficientEnabled.checked;
   saveState();
@@ -470,6 +597,12 @@ elements.searchInput.addEventListener("input", () => {
 
 elements.mode.addEventListener("change", updateCalculation);
 elements.pointPrice.addEventListener("input", updateCalculation);
+elements.useContractPrice.addEventListener("click", () => {
+  const price = Number(elements.useContractPrice.dataset.price);
+  if (!Number.isFinite(price)) return;
+  elements.pointPrice.value = price.toFixed(2);
+  updateCalculation();
+});
 elements.customFactor.addEventListener("input", updateCalculation);
 elements.coefficientSelect.addEventListener("change", updateCalculation);
 elements.coefficientEnabled.addEventListener("change", () => {
@@ -487,6 +620,8 @@ elements.sourceOrder.textContent = CATALOG.meta.orderNumber || "46/2026/DSOZ";
 elements.sourceCatalog.textContent = CATALOG.meta.catalog || "Załącznik 1a – katalog grup";
 elements.sourceCount.textContent = `${numberFormatter.format(CATALOG.meta.groupCount || GROUPS.length)} grup JGP`;
 elements.sourceCharacteristics.textContent = `Załącznik 9 – charakterystyka JGP · ${numberFormatter.format(CHARACTERISTICS.meta.codeEntryCount || 0)} pozycji ICD.`;
+elements.sourceApiLabel.textContent = `${CONTRACT_DATA.meta.source || "API Umowy NFZ"} v${CONTRACT_DATA.meta.apiVersion || "—"}`;
+elements.sourceApiDate.textContent = formatDate(CONTRACT_DATA.meta.syncedAt);
 
 if (selectedGroup) {
   elements.searchInput.value = selectedGroup.code;

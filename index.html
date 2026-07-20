@@ -7,8 +7,8 @@
   <meta name="description" content="Mobilny katalog JGP: wycena, warunki grupowania, procedury, rozpoznania i zakresy świadczeń NFZ.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="JGP">
-  <title>JGP Kalkulator</title>
+  <meta name="apple-mobile-web-app-title" content="HospitalAPP">
+  <title>HospitalAPP · Gruper JGP</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon.svg">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -17,10 +17,10 @@
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand-mark" aria-hidden="true">JGP</div>
+      <div class="brand-mark" aria-hidden="true">H</div>
       <div class="brand-copy">
-        <p class="eyebrow">Wersja testowa · katalog NFZ</p>
-        <h1>Kalkulator JGP</h1>
+        <p class="eyebrow">HospitalAPP · moduł JGP</p>
+        <h1>Gruper i wycena JGP</h1>
       </div>
       <button id="install-help-button" class="icon-button" type="button" aria-label="Jak zainstalować aplikację" title="Instalacja na iPhone">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
@@ -28,6 +28,17 @@
     </header>
 
     <main>
+      <nav class="module-tabs" aria-label="Moduły HospitalAPP">
+        <button class="module-tab active" type="button" aria-current="page">
+          <span>Gruper JGP</span>
+          <small>katalog i wycena</small>
+        </button>
+        <button class="module-tab" type="button" disabled>
+          <span>Analiza wyników</span>
+          <small>kolejny etap</small>
+        </button>
+      </nav>
+
       <section class="search-section" aria-labelledby="search-label">
         <div class="section-heading">
           <div>
@@ -38,7 +49,7 @@
         </div>
 
         <form id="search-form" class="search-form" role="search">
-          <label class="sr-only" for="search-input">Kod grupy, produktu, procedury, rozpoznania lub nazwa</label>
+          <label class="sr-only" for="search-input">Kod grupy, produktu, zakresu umowy, procedury, rozpoznania lub nazwa</label>
           <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
           <input id="search-input" type="search" value="N01" placeholder="N01, 72.1, O80.0, poród…" autocomplete="off" spellcheck="false">
           <button class="search-button" type="submit">Szukaj</button>
@@ -56,13 +67,57 @@
           </div>
         </div>
 
+        <section id="contract-panel" class="contract-panel" aria-labelledby="contract-title">
+          <div class="contract-heading">
+            <div>
+              <p class="eyebrow">Publiczne dane umowy</p>
+              <h3 id="contract-title">Rozliczenie w profilu umowy</h3>
+            </div>
+            <span id="contract-status" class="verification-badge">Sprawdzanie</span>
+          </div>
+
+          <div id="contract-verified-content">
+            <dl class="contract-grid">
+              <div>
+                <dt>Zakres</dt>
+                <dd id="contract-scope-code">—</dd>
+                <small id="contract-scope-name">—</small>
+              </div>
+              <div>
+                <dt>Cena punktu</dt>
+                <dd id="contract-point-price">—</dd>
+                <small>średnia cena w planie umowy</small>
+              </div>
+              <div>
+                <dt>Produkt jednostkowy</dt>
+                <dd id="contract-unit-code">—</dd>
+                <small id="contract-unit-name">—</small>
+              </div>
+              <div>
+                <dt>Umowa i okres</dt>
+                <dd id="contract-agreement-code">—</dd>
+                <small id="contract-validity">—</small>
+              </div>
+            </dl>
+            <button id="use-contract-price" class="secondary-button" type="button">Użyj ceny z umowy</button>
+
+            <details id="contract-additions" class="contract-additions">
+              <summary>Produkty dodatkowe dostępne w zakresie</summary>
+              <div id="contract-addition-list"></div>
+            </details>
+          </div>
+
+          <p id="contract-empty" class="contract-empty" hidden>Ta grupa nie została jeszcze potwierdzona w aktualnym profilu umowy. Nadal możesz sprawdzić jej katalog NFZ i wykonać własną kalkulację.</p>
+          <p id="contract-source" class="contract-source">Źródło: API Umowy NFZ.</p>
+        </section>
+
         <div class="form-grid">
           <label class="field">
             <span>Tryb hospitalizacji</span>
             <select id="hospitalization-mode"></select>
           </label>
           <label class="field">
-            <span>Cena za punkt</span>
+            <span>Cena za punkt <small id="point-price-source" class="field-source">wartość użytkownika</small></span>
             <span class="input-with-unit">
               <input id="point-price" type="number" value="1.96" min="0" step="0.01" inputmode="decimal">
               <span>zł</span>
@@ -167,7 +222,7 @@
               <p class="reference-source">Źródło: kolumny „Zakresy świadczeń” w załączniku 1a.</p>
               <div id="scope-list" class="scope-list"></div>
               <p id="catalog-note" class="catalog-note" hidden></p>
-              <p class="contract-note"><strong>Umowa placówki:</strong> ten widok pokazuje zakresy dopuszczone przez katalog NFZ. Potwierdzenie, które z nich masz zakontraktowane, będzie możliwe po dodaniu eksportu z Informatora o Umowach.</p>
+              <p class="contract-note"><strong>Jak czytać ten widok:</strong> lista pokazuje krajowe zakresy dopuszczone przez katalog 1a. Jeżeli grupa występuje w aktualnym profilu umowy, jej dokładny kod zakresu i cenę pokazujemy wyżej na podstawie API NFZ.</p>
             </div>
           </details>
         </div>
@@ -181,7 +236,7 @@
 
       <aside class="notice">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-        <p>Punktacje i zakresy pochodzą z katalogu 1a, a warunki grupowania z charakterystyki JGP. Cena punktu i ręcznie wpisany współczynnik są ustawieniami użytkownika; aplikacja nie potwierdza prawa do ich zastosowania ani nie zastępuje grupera NFZ.</p>
+        <p>Punktacje i zakresy katalogowe pochodzą z załączników NFZ, a dane profilu umowy z API Umowy NFZ. Własne współczynniki i obliczenia HospitalAPP nie są oficjalną decyzją rozliczeniową NFZ.</p>
       </aside>
 
       <details class="sources">
@@ -190,15 +245,18 @@
           <p><strong id="source-order">46/2026/DSOZ</strong> · zarządzenie z 30.04.2026 r.</p>
           <p><span id="source-catalog">Załącznik 1a – katalog grup</span> · <span id="source-count">702 grupy JGP</span>.</p>
           <p id="source-characteristics">Załącznik 9 – charakterystyka JGP.</p>
+          <p><strong id="source-api-label">API Umowy NFZ</strong> · aktualizacja profilu: <span id="source-api-date">—</span>.</p>
           <p>Cena punktu i ustawienia są zapisywane wyłącznie na urządzeniu.</p>
           <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Zarządzenie NFZ 46/2026/DSOZ</a>
+          <a href="https://api.nfz.gov.pl/" target="_blank" rel="noopener">API Umowy NFZ</a>
+          <p class="source-disclaimer">Źródło danych umownych: Narodowy Fundusz Zdrowia. Obliczenia i zestawienia przygotowuje HospitalAPP; aplikacja nie jest produktem NFZ.</p>
         </div>
       </details>
     </main>
 
     <footer>
-      <span>JGP Kalkulator</span>
-      <span>v0.3 · katalog 1a + charakterystyka</span>
+      <span>HospitalAPP</span>
+      <span>v0.4 · JGP + dane umowy NFZ</span>
     </footer>
   </div>
 
@@ -238,6 +296,7 @@
   <script src="data/jgp-characteristics-12.js" defer></script>
   <script src="data/jgp-characteristics-13.js" defer></script>
   <script src="data/jgp-characteristics-14.js" defer></script>
+  <script src="data/nfz-contract.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

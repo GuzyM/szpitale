@@ -149,6 +149,52 @@ main {
   gap: 16px;
 }
 
+.module-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.module-tab {
+  display: grid;
+  gap: 2px;
+  min-height: 54px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 13px;
+  color: var(--muted);
+  background: transparent;
+  text-align: left;
+}
+
+.module-tab span {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.module-tab small {
+  font-size: 10px;
+}
+
+.module-tab.active {
+  color: #fff;
+  background: var(--brand);
+  box-shadow: 0 7px 18px rgba(11, 107, 97, 0.2);
+}
+
+.module-tab.active small {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.module-tab:disabled {
+  cursor: default;
+  opacity: 0.64;
+}
+
 .search-section,
 .result-card,
 .empty-state,
@@ -339,6 +385,157 @@ main {
   border-bottom: 1px solid var(--line);
 }
 
+.contract-panel {
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px solid #b9dcd6;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f5fbf9, var(--brand-soft));
+}
+
+.contract-panel.unavailable {
+  border-color: var(--line);
+  background: var(--surface-alt);
+}
+
+.contract-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contract-heading h3 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.verification-badge {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #075b40;
+  background: #d4f1e4;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.verification-badge.unavailable {
+  color: #765022;
+  background: var(--accent-soft);
+}
+
+.contract-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 13px 0 0;
+}
+
+.contract-grid > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(185, 220, 214, 0.82);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.contract-grid dt {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.contract-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--brand-dark);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.contract-grid small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.secondary-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 9px;
+  border: 1px solid var(--brand);
+  border-radius: 12px;
+  color: var(--brand-dark);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.contract-additions {
+  margin-top: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(185, 220, 214, 0.82);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.contract-additions > summary {
+  padding: 11px;
+  color: var(--brand-dark);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.contract-addition-item {
+  padding: 10px 11px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.contract-addition-item strong,
+.contract-addition-item span,
+.contract-addition-item small {
+  display: block;
+}
+
+.contract-addition-item strong {
+  color: var(--brand-dark);
+  font-size: 11px;
+}
+
+.contract-addition-item span {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.contract-addition-item small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.contract-empty {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.contract-source {
+  margin: 10px 1px 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
 .group-code {
   display: grid;
   place-items: center;
@@ -377,6 +574,13 @@ main {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.field-source {
+  display: inline;
+  color: var(--brand);
+  font-size: 9px;
+  font-weight: 750;
 }
 
 .field input,
@@ -902,8 +1106,17 @@ main {
 }
 
 .sources a {
+  display: inline-block;
+  margin: 2px 12px 6px 0;
   color: var(--brand);
   font-weight: 750;
+}
+
+.source-disclaimer {
+  margin-top: 8px !important;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
 }
 
 footer {

@@ -1,7 +1,7 @@
 {
-  "name": "JGP Kalkulator",
-  "short_name": "JGP",
-  "description": "Mobilny katalog JGP: wycena, warunki grupowania, procedury, rozpoznania i zakresy świadczeń NFZ.",
+  "name": "HospitalAPP · Gruper JGP",
+  "short_name": "HospitalAPP",
+  "description": "Mobilny moduł JGP: wycena, dane umowy, warunki grupowania, procedury, rozpoznania i zakresy świadczeń NFZ.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",

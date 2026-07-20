@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "jgp-kalkulator-v0.3.0";
+const CACHE_NAME = "hospitalapp-v0.4.0";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -25,6 +25,7 @@ const APP_SHELL = [
   "./data/jgp-characteristics-12.js",
   "./data/jgp-characteristics-13.js",
   "./data/jgp-characteristics-14.js",
+  "./data/nfz-contract.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg"
