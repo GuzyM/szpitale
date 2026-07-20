@@ -1,9 +1,12 @@
 "use strict";
 
 const CATALOG = window.JGP_CATALOG || { meta: {}, groups: [] };
+const CHARACTERISTICS = window.JGP_CHARACTERISTICS || { meta: {}, blocks: {} };
 const GROUPS = CATALOG.groups;
+const BLOCKS = CHARACTERISTICS.blocks;
+const GROUP_BY_CODE = new Map(GROUPS.map((group) => [group.code, group]));
 
-const STORAGE_KEY = "jgp-calculator-v01";
+const STORAGE_KEY = "jgp-calculator-v03";
 const MODE_LABELS = {
   ordinary: "Hospitalizacja",
   planned: "Hospitalizacja planowa",
@@ -11,6 +14,13 @@ const MODE_LABELS = {
   sameDay: "Przyjęcie i wypis tego samego dnia",
   oneDayHosp: "Hospitalizacja 1-dniowa",
   twoDayHosp: "Hospitalizacja 2-dniowa"
+};
+const REFERENCE_ROLE_LABELS = {
+  procedure: "Lista procedur",
+  diagnosis: "Lista rozpoznań",
+  additional: "Lista dodatkowa",
+  general: "Lista ogólna",
+  reference: "Lista przywołana"
 };
 
 const elements = {
@@ -33,22 +43,27 @@ const elements = {
   factorFormula: document.querySelector("#factor-formula"),
   financedDays: document.querySelector("#financed-days"),
   extraDayPoints: document.querySelector("#extra-day-points"),
-  bridge: document.querySelector("#factor-bridge"),
-  anesthesia: document.querySelector("#factor-anesthesia"),
-  neonate: document.querySelector("#factor-neonate"),
-  customEnabled: document.querySelector("#factor-custom-enabled"),
-  custom: document.querySelector("#factor-custom"),
-  clearCoefficients: document.querySelector("#clear-coefficients"),
+  coefficientEnabled: document.querySelector("#coefficient-enabled"),
+  coefficientControls: document.querySelector("#coefficient-controls"),
+  coefficientSelect: document.querySelector("#coefficient-select"),
+  customFactor: document.querySelector("#factor-custom"),
+  groupingSummary: document.querySelector("#grouping-summary"),
+  groupingRules: document.querySelector("#grouping-rules"),
+  directCodeLists: document.querySelector("#direct-code-lists"),
+  referencedCodeLists: document.querySelector("#referenced-code-lists"),
+  scopeSummary: document.querySelector("#scope-summary"),
+  scopeList: document.querySelector("#scope-list"),
+  catalogNote: document.querySelector("#catalog-note"),
   installButton: document.querySelector("#install-help-button"),
   installDialog: document.querySelector("#install-dialog"),
   connectionBadge: document.querySelector("#connection-badge"),
   catalogLabel: document.querySelector("#catalog-label"),
   sourceOrder: document.querySelector("#source-order"),
   sourceCatalog: document.querySelector("#source-catalog"),
-  sourceCount: document.querySelector("#source-count")
+  sourceCount: document.querySelector("#source-count"),
+  sourceCharacteristics: document.querySelector("#source-characteristics")
 };
 
-const factorInputs = [elements.bridge, elements.anesthesia, elements.neonate];
 const numberFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 const decimalFormatter = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const moneyFormatter = new Intl.NumberFormat("pl-PL", {
@@ -57,9 +72,10 @@ const moneyFormatter = new Intl.NumberFormat("pl-PL", {
   minimumFractionDigits: 2
 });
 
+const BLOCK_TO_GROUPS = buildBlockToGroupMap();
 let state = loadState();
-let selectedGroup = GROUPS.find((group) => group.code === state.groupCode)
-  || GROUPS.find((group) => group.code === "N01")
+let selectedGroup = GROUP_BY_CODE.get(state.groupCode)
+  || GROUP_BY_CODE.get("N01")
   || GROUPS[0];
 
 function defaultState() {
@@ -67,8 +83,8 @@ function defaultState() {
     groupCode: "N01",
     modeByGroup: {},
     price: 1.96,
-    customFactor: 1.27,
-    factorsByGroup: {}
+    customFactor: 1,
+    coefficientEnabledByGroup: {}
   };
 }
 
@@ -90,44 +106,104 @@ function saveState() {
 }
 
 function normalize(value) {
-  return String(value || "").trim().toLocaleUpperCase("pl-PL");
+  return String(value || "")
+    .trim()
+    .toLocaleUpperCase("pl-PL")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function addBlockGroup(mapping, blockCode, groupCode) {
+  if (!mapping.has(blockCode)) mapping.set(blockCode, new Set());
+  mapping.get(blockCode).add(groupCode);
+}
+
+function buildBlockToGroupMap() {
+  const mapping = new Map();
+  GROUPS.forEach((group) => {
+    addBlockGroup(mapping, group.code, group.code);
+    const block = BLOCKS[group.code];
+    (block?.references || []).forEach((reference) => {
+      addBlockGroup(mapping, reference.code, group.code);
+    });
+  });
+  return mapping;
+}
+
+function blockSearchText(block) {
+  if (block.searchText) return block.searchText;
+  const values = [block.title];
+  block.segments.forEach((segment) => {
+    if (segment.type === "text") values.push(segment.text);
+    if (segment.type === "list") values.push(...segment.items);
+  });
+  block.searchText = normalize(values.join(" "));
+  return block.searchText;
+}
+
+function blockMatchContext(block, query) {
+  for (const segment of block.segments) {
+    if (segment.type === "text" && normalize(segment.text).includes(query)) {
+      return segment.text;
+    }
+    if (segment.type === "list") {
+      const item = segment.items.find((entry) => normalize(entry).includes(query));
+      if (item) return item;
+    }
+  }
+  return block.title;
+}
+
+function directGroupMatch(group, query) {
+  return normalize(group.code).includes(query)
+    || normalize(group.name).includes(query)
+    || normalize(group.productCode).includes(query);
 }
 
 function findMatches(value) {
   const query = normalize(value);
-  if (!query) return GROUPS.slice(0, 8);
-  return GROUPS.filter((group) => {
-    return normalize(group.code).includes(query)
-      || normalize(group.name).includes(query)
-      || normalize(group.productCode).includes(query);
+  if (!query) return GROUPS.slice(0, 8).map((group) => ({ group, context: "Grupa JGP" }));
+
+  const matches = [];
+  const included = new Set();
+  GROUPS.forEach((group) => {
+    if (!directGroupMatch(group, query)) return;
+    included.add(group.code);
+    matches.push({ group, context: "Kod, produkt lub nazwa grupy" });
   });
-}
 
-function activeFactorState() {
-  return state.factorsByGroup[selectedGroup.code] || {
-    bridge: false,
-    anesthesia: false,
-    neonate: false,
-    custom: false
-  };
-}
+  if (query.length < 3) return matches;
 
-function setActiveFactorState(next) {
-  state.factorsByGroup[selectedGroup.code] = next;
-  saveState();
+  for (const [blockCode, block] of Object.entries(BLOCKS)) {
+    if (!blockSearchText(block).includes(query)) continue;
+    const groupCodes = BLOCK_TO_GROUPS.get(blockCode);
+    if (!groupCodes) continue;
+    const context = blockMatchContext(block, query);
+    for (const groupCode of groupCodes) {
+      if (included.has(groupCode)) continue;
+      const group = GROUP_BY_CODE.get(groupCode);
+      if (!group) continue;
+      included.add(groupCode);
+      matches.push({ group, context });
+      if (matches.length >= 40) return matches;
+    }
+  }
+  return matches;
 }
 
 function renderSuggestions(matches) {
   elements.suggestions.replaceChildren();
-  matches.slice(0, 8).forEach((group) => {
+  matches.slice(0, 8).forEach(({ group, context }) => {
     const button = document.createElement("button");
     const code = document.createElement("strong");
     const name = document.createElement("span");
+    const detail = document.createElement("small");
     button.type = "button";
     button.className = "suggestion";
     code.textContent = group.code;
     name.textContent = group.name;
-    button.append(code, name);
+    detail.textContent = context;
+    button.append(code, name, detail);
     button.addEventListener("click", () => {
       elements.searchInput.value = group.code;
       elements.suggestions.replaceChildren();
@@ -151,30 +227,152 @@ function renderModes(group) {
   elements.mode.value = group[savedMode] != null ? savedMode : "ordinary";
 }
 
-function setRuleAvailability() {
-  const rules = [
-    { input: elements.bridge, allowed: selectedGroup.code === "N01" },
-    { input: elements.anesthesia, allowed: selectedGroup.code === "N01" },
-    { input: elements.neonate, allowed: selectedGroup.code === "N01" }
-  ];
-
-  rules.forEach(({ input, allowed }) => {
-    input.disabled = !allowed;
-    const label = input.closest(".coefficient-option");
-    label.classList.toggle("is-disabled", !allowed);
-    if (!allowed) input.checked = false;
-  });
+function restoreCoefficientControls() {
+  const enabled = Boolean(state.coefficientEnabledByGroup[selectedGroup.code]);
+  elements.coefficientEnabled.checked = enabled;
+  elements.coefficientControls.hidden = !enabled;
+  elements.customFactor.value = Number(state.customFactor) || 1;
 }
 
-function restoreFactorControls() {
-  const factors = activeFactorState();
-  elements.bridge.checked = Boolean(factors.bridge);
-  elements.anesthesia.checked = Boolean(factors.anesthesia);
-  elements.neonate.checked = Boolean(factors.neonate);
-  elements.customEnabled.checked = Boolean(factors.custom);
-  elements.custom.value = state.customFactor;
-  elements.custom.disabled = !elements.customEnabled.checked;
-  setRuleAvailability();
+function splitMedicalCode(item) {
+  const match = String(item).match(/^(\S+)\s+(.+)$/);
+  return match ? { code: match[1], name: match[2] } : { code: "—", name: item };
+}
+
+function createCodeList(segment, heading) {
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  const title = document.createElement("strong");
+  const count = document.createElement("span");
+  const list = document.createElement("ul");
+  details.className = "code-list";
+  title.textContent = heading;
+  count.textContent = `${numberFormatter.format(segment.items.length)} poz.`;
+  list.className = "code-items";
+  summary.append(title, count);
+  details.append(summary, list);
+
+  details.addEventListener("toggle", () => {
+    if (!details.open || details.dataset.rendered === "true") return;
+    const fragment = document.createDocumentFragment();
+    segment.items.forEach((item) => {
+      const parsed = splitMedicalCode(item);
+      const row = document.createElement("li");
+      const code = document.createElement("span");
+      const name = document.createElement("span");
+      code.className = "medical-code";
+      code.textContent = parsed.code;
+      name.textContent = parsed.name;
+      row.append(code, name);
+      fragment.appendChild(row);
+    });
+    list.appendChild(fragment);
+    details.dataset.rendered = "true";
+  });
+  return details;
+}
+
+function relevantLists(block, role) {
+  const lists = block.segments.filter((segment) => segment.type === "list");
+  if (role === "procedure") return lists.filter((segment) => segment.system === "ICD-9");
+  if (role === "diagnosis" || role === "general") {
+    return lists.filter((segment) => segment.system === "ICD-10");
+  }
+  return lists;
+}
+
+function renderGrouping(group) {
+  const block = BLOCKS[group.code];
+  elements.groupingRules.replaceChildren();
+  elements.directCodeLists.replaceChildren();
+  elements.referencedCodeLists.replaceChildren();
+
+  if (!block) {
+    elements.groupingSummary.textContent = "Brak charakterystyki w danych źródłowych";
+    return;
+  }
+
+  const directLists = block.segments.filter((segment) => segment.type === "list");
+  block.segments.filter((segment) => segment.type === "text").forEach((segment) => {
+    const paragraph = document.createElement("p");
+    const isConnector = normalize(segment.text) === "LUB";
+    paragraph.className = isConnector ? "rule-connector" : "grouping-rule";
+    paragraph.textContent = segment.text;
+    elements.groupingRules.appendChild(paragraph);
+  });
+
+  const labelCounts = {};
+  directLists.forEach((segment) => {
+    labelCounts[segment.label] = (labelCounts[segment.label] || 0) + 1;
+    const suffix = labelCounts[segment.label] > 1 ? ` · lista ${labelCounts[segment.label]}` : "";
+    elements.directCodeLists.appendChild(
+      createCodeList(segment, `${segment.label}${suffix} · bezpośrednio w ${group.code}`)
+    );
+  });
+
+  let referencedItemCount = 0;
+  (block.references || []).forEach((reference) => {
+    const referenced = BLOCKS[reference.code];
+    if (!referenced) return;
+    const lists = relevantLists(referenced, reference.role);
+    if (!lists.length) return;
+
+    const section = document.createElement("section");
+    const heading = document.createElement("h4");
+    const stack = document.createElement("div");
+    section.className = "reference-block";
+    heading.className = "reference-block-title";
+    stack.className = "code-list-stack";
+    heading.textContent = `${REFERENCE_ROLE_LABELS[reference.role] || REFERENCE_ROLE_LABELS.reference} ${reference.code}`;
+    lists.forEach((segment, index) => {
+      referencedItemCount += segment.items.length;
+      const suffix = lists.length > 1 ? ` · część ${index + 1}` : "";
+      stack.appendChild(
+        createCodeList(segment, `${segment.label}${suffix} · ${referenced.title}`)
+      );
+    });
+    section.append(heading, stack);
+    elements.referencedCodeLists.appendChild(section);
+  });
+
+  const directItemCount = directLists.reduce((sum, segment) => sum + segment.items.length, 0);
+  const ruleCount = block.segments.filter(
+    (segment) => segment.type === "text" && normalize(segment.text) !== "LUB"
+  ).length;
+  elements.groupingSummary.textContent = `${numberFormatter.format(ruleCount)} war. · ${numberFormatter.format(directItemCount + referencedItemCount)} pozycji ICD`;
+}
+
+function scopeQualifierText(qualifier) {
+  if (qualifier === 1) return "Możliwość realizacji w pierwszym zakresie wskazanym w tej pozycji katalogu.";
+  if (qualifier === 2) return "Możliwość realizacji w drugim zakresie wskazanym w tej pozycji katalogu.";
+  return "Możliwość realizacji we wszystkich zakresach wskazanych w tej pozycji katalogu.";
+}
+
+function scopeDisplayLabel(scope) {
+  if (scope.qualifier === 3) return scope.label;
+  const parts = scope.label.split("/").map((part) => part.trim()).filter(Boolean);
+  return parts[scope.qualifier - 1] || scope.label;
+}
+
+function renderScopes(group) {
+  const scopes = group.scopeFamilies || [];
+  elements.scopeList.replaceChildren();
+  scopes.forEach((scope) => {
+    const item = document.createElement("article");
+    const title = document.createElement("strong");
+    const note = document.createElement("small");
+    item.className = "scope-item";
+    title.textContent = scopeDisplayLabel(scope);
+    note.textContent = scopeQualifierText(scope.qualifier);
+    item.append(title, note);
+    elements.scopeList.appendChild(item);
+  });
+
+  elements.scopeSummary.textContent = scopes.length === 1
+    ? "1 pozycja zakresowa w katalogu 1a"
+    : `${numberFormatter.format(scopes.length)} pozycje zakresowe w katalogu 1a`;
+  elements.catalogNote.hidden = !group.catalogNote;
+  elements.catalogNote.textContent = group.catalogNote || "";
 }
 
 function selectGroup(group) {
@@ -198,7 +396,9 @@ function selectGroup(group) {
     : `${numberFormatter.format(group.extraDay)} pkt`;
 
   renderModes(group);
-  restoreFactorControls();
+  restoreCoefficientControls();
+  renderGrouping(group);
+  renderScopes(group);
   updateCalculation();
 }
 
@@ -206,59 +406,44 @@ function currentPoints() {
   return Number(selectedGroup[elements.mode.value] ?? selectedGroup.ordinary ?? 0);
 }
 
-function selectedFactors() {
-  const factors = factorInputs
-    .filter((input) => input.checked && !input.disabled)
-    .map((input) => Number(input.dataset.factor));
-
-  if (elements.customEnabled.checked) {
-    const customValue = Number(elements.custom.value);
-    if (Number.isFinite(customValue) && customValue > 0) factors.push(customValue);
-  }
-
-  return factors;
-}
-
-function combineFactors(factors) {
-  if (factors.length === 0) return 1;
-  return factors.reduce((sum, factor) => sum + factor, 0) - (factors.length - 1);
+function currentFactor() {
+  if (!elements.coefficientEnabled.checked) return 1;
+  const customValue = Number(elements.customFactor.value);
+  return Number.isFinite(customValue) && customValue > 0 ? customValue : 1;
 }
 
 function updateCalculation() {
   const points = currentPoints();
   const price = Math.max(0, Number(elements.pointPrice.value) || 0);
-  const factors = selectedFactors();
-  const combined = combineFactors(factors);
+  const factor = currentFactor();
   const base = points * price;
-  const total = base * combined;
+  const total = base * factor;
 
   elements.pointsValue.textContent = numberFormatter.format(points);
   elements.baseValue.textContent = moneyFormatter.format(base);
-  elements.combinedFactor.textContent = decimalFormatter.format(combined);
+  elements.combinedFactor.textContent = decimalFormatter.format(factor);
   elements.totalValue.textContent = moneyFormatter.format(total);
-  elements.totalEquation.textContent = `${numberFormatter.format(points)} pkt × ${decimalFormatter.format(price)} zł × ${decimalFormatter.format(combined)}`;
-  elements.factorFormula.textContent = factors.length
-    ? `Wybrane: ${factors.map((factor) => decimalFormatter.format(factor)).join(" + ")} → K = ${decimalFormatter.format(combined)}`
-    : "Brak wybranego współczynnika.";
+  elements.totalEquation.textContent = `${numberFormatter.format(points)} pkt × ${decimalFormatter.format(price)} zł × ${decimalFormatter.format(factor)}`;
+  elements.factorFormula.textContent = elements.coefficientEnabled.checked
+    ? `Zastosowano ręcznie wpisany współczynnik ${decimalFormatter.format(factor)}.`
+    : "Współczynnik nie jest stosowany.";
 
   state.price = price;
-  state.customFactor = Number(elements.custom.value) || 1.27;
+  state.customFactor = Number(elements.customFactor.value) || 1;
   state.modeByGroup[selectedGroup.code] = elements.mode.value;
-  setActiveFactorState({
-    bridge: elements.bridge.checked,
-    anesthesia: elements.anesthesia.checked,
-    neonate: elements.neonate.checked,
-    custom: elements.customEnabled.checked
-  });
+  state.coefficientEnabledByGroup[selectedGroup.code] = elements.coefficientEnabled.checked;
+  saveState();
 }
 
 function runSearch() {
   const matches = findMatches(elements.searchInput.value);
-  const exact = matches.find((group) => normalize(group.code) === normalize(elements.searchInput.value));
+  const query = normalize(elements.searchInput.value);
+  const exact = matches.find(({ group }) => normalize(group.code) === query)
+    || matches.find(({ group }) => normalize(group.productCode) === query);
   renderSuggestions(matches);
 
   if (exact || matches.length === 1) {
-    selectGroup(exact || matches[0]);
+    selectGroup((exact || matches[0]).group);
     return;
   }
 
@@ -266,13 +451,6 @@ function runSearch() {
     elements.resultCard.hidden = true;
     elements.emptyState.hidden = false;
   }
-}
-
-function clearCoefficients() {
-  factorInputs.forEach((input) => { input.checked = false; });
-  elements.customEnabled.checked = false;
-  elements.custom.disabled = true;
-  updateCalculation();
 }
 
 function updateConnectionBadge() {
@@ -292,25 +470,23 @@ elements.searchInput.addEventListener("input", () => {
 
 elements.mode.addEventListener("change", updateCalculation);
 elements.pointPrice.addEventListener("input", updateCalculation);
-factorInputs.forEach((input) => input.addEventListener("change", updateCalculation));
-
-elements.customEnabled.addEventListener("change", () => {
-  elements.custom.disabled = !elements.customEnabled.checked;
-  if (elements.customEnabled.checked) elements.custom.focus();
+elements.customFactor.addEventListener("input", updateCalculation);
+elements.coefficientSelect.addEventListener("change", updateCalculation);
+elements.coefficientEnabled.addEventListener("change", () => {
+  elements.coefficientControls.hidden = !elements.coefficientEnabled.checked;
+  if (elements.coefficientEnabled.checked) elements.customFactor.focus();
   updateCalculation();
 });
-
-elements.custom.addEventListener("input", updateCalculation);
-elements.clearCoefficients.addEventListener("click", clearCoefficients);
 elements.installButton.addEventListener("click", () => elements.installDialog.showModal());
 window.addEventListener("online", updateConnectionBadge);
 window.addEventListener("offline", updateConnectionBadge);
 
 elements.pointPrice.value = state.price;
-elements.catalogLabel.textContent = `Załącznik 1a · ${numberFormatter.format(CATALOG.meta.groupCount || GROUPS.length)} grup`;
+elements.catalogLabel.textContent = `Załączniki 1a i 9 · ${numberFormatter.format(CATALOG.meta.groupCount || GROUPS.length)} grup`;
 elements.sourceOrder.textContent = CATALOG.meta.orderNumber || "46/2026/DSOZ";
 elements.sourceCatalog.textContent = CATALOG.meta.catalog || "Załącznik 1a – katalog grup";
 elements.sourceCount.textContent = `${numberFormatter.format(CATALOG.meta.groupCount || GROUPS.length)} grup JGP`;
+elements.sourceCharacteristics.textContent = `Załącznik 9 – charakterystyka JGP · ${numberFormatter.format(CHARACTERISTICS.meta.codeEntryCount || 0)} pozycji ICD.`;
 
 if (selectedGroup) {
   elements.searchInput.value = selectedGroup.code;
@@ -324,7 +500,7 @@ updateConnectionBadge();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(() => {
-      // Brak service workera nie blokuje działania kalkulatora online.
+      // Brak service workera nie blokuje działania katalogu online.
     });
   });
 }

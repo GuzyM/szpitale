@@ -1,0 +1,1 @@
+window.JGP_CATALOG = {"meta":{"orderNumber":"46/2026/DSOZ","orderDate":"2026-04-30","attachment":"Zalacznik 1a Katalog grup.xlsx","catalog":"1a - katalog grup","sourceUrl":"https://baw.nfz.gov.pl/NFZ/document/43868/Zarzadzenie-46_2026_DSOZ","groupCount":702,"scopeFamilyCount":68},"groups":[]};

@@ -1,0 +1,1 @@
+window.JGP_CHARACTERISTICS = {"meta":{"orderNumber":"46/2026/DSOZ","attachment":"Zalacznik 9 Charakterystyka JGP.xlsx","sourceUrl":"https://baw.nfz.gov.pl/NFZ/document/43868/Zarzadzenie-46_2026_DSOZ","groupCount":702,"listCount":144,"codeEntryCount":35060},"blocks":{}};

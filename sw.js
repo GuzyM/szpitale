@@ -1,11 +1,30 @@
 "use strict";
 
-const CACHE_NAME = "jgp-kalkulator-v0.2.0";
+const CACHE_NAME = "jgp-kalkulator-v0.3.0";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./app.css",
-  "./data/jgp-data.js",
+  "./data/jgp-data-meta.js",
+  "./data/jgp-data-01.js",
+  "./data/jgp-data-02.js",
+  "./data/jgp-data-03.js",
+  "./data/jgp-data-04.js",
+  "./data/jgp-characteristics-meta.js",
+  "./data/jgp-characteristics-01.js",
+  "./data/jgp-characteristics-02.js",
+  "./data/jgp-characteristics-03.js",
+  "./data/jgp-characteristics-04.js",
+  "./data/jgp-characteristics-05.js",
+  "./data/jgp-characteristics-06.js",
+  "./data/jgp-characteristics-07.js",
+  "./data/jgp-characteristics-08.js",
+  "./data/jgp-characteristics-09.js",
+  "./data/jgp-characteristics-10.js",
+  "./data/jgp-characteristics-11.js",
+  "./data/jgp-characteristics-12.js",
+  "./data/jgp-characteristics-13.js",
+  "./data/jgp-characteristics-14.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg"

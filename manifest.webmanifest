@@ -1,7 +1,7 @@
 {
   "name": "JGP Kalkulator",
   "short_name": "JGP",
-  "description": "Mobilny katalog i kalkulator 702 grup JGP z załącznika 1a do zarządzenia NFZ 46/2026/DSOZ.",
+  "description": "Mobilny katalog JGP: wycena, warunki grupowania, procedury, rozpoznania i zakresy świadczeń NFZ.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",
