@@ -11,8 +11,8 @@ Można wskazać innego świadczeniodawcę i zakres:
       --year 2026 --branch 06 --provider-code 061/100014 \
       --product-code 03.4450.260.02 --agreement-code 061/100014/SZP/08/2026
 
-Skrypt zapisuje wyłącznie publiczne dane potrzebne aplikacji. Nie zapisuje nazwy,
-adresu, NIP ani REGON świadczeniodawcy.
+Skrypt zapisuje wyłącznie publiczne dane potrzebne aplikacji: nazwę i kod
+świadczeniodawcy oraz dane umowy. Nie zapisuje adresu, NIP ani REGON.
 """
 
 import argparse
@@ -39,7 +39,7 @@ def api_get(path, **params):
         "api-version": API_VERSION,
     }
     url = f"{API_ROOT}/{path.lstrip('/')}?{urlencode(query)}"
-    request = Request(url, headers={"User-Agent": "HospitalAPP/0.4"})
+    request = Request(url, headers={"User-Agent": "HospitalAPP/0.5"})
     time.sleep(REQUEST_INTERVAL)
     with urlopen(request, timeout=45) as response:
         return json.load(response)
@@ -187,6 +187,7 @@ def build_payload(args):
     agreement = find_agreement(args)
     agreement_attributes = agreement.get("attributes", {})
     plan = find_plan(agreement["id"], args.product_code)
+    provider_name = args.provider_name or f"Świadczeniodawca {args.provider_code}"
     return {
         "meta": {
             "source": "API Umowy NFZ",
@@ -197,6 +198,9 @@ def build_payload(args):
             "agreementUpdatedAt": agreement_attributes.get("updated-at"),
             "year": args.year,
             "branch": args.branch,
+            "providerCode": args.provider_code,
+            "providerName": provider_name,
+            "providerDisplayName": args.provider_display_name or provider_name,
             "agreementCode": agreement_attributes.get("code"),
             "profileLabel": f"Profil umowy {args.year}",
         },
@@ -209,6 +213,8 @@ def parse_args():
     parser.add_argument("--year", type=int, default=2026)
     parser.add_argument("--branch", default="06")
     parser.add_argument("--provider-code", default="061/100014")
+    parser.add_argument("--provider-name")
+    parser.add_argument("--provider-display-name")
     parser.add_argument("--product-code", default="03.4450.260.02")
     parser.add_argument("--agreement-code", default="061/100014/SZP/08/2026")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)

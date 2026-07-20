@@ -1,32 +1,55 @@
-# HospitalAPP – moduł Gruper JGP
+# HospitalAPP
 
-Mobilna aplikacja PWA instalowalna na ekranie początkowym iPhone’a. Wersja 0.4 obejmuje 702 grupy JGP z oficjalnych załączników 1a i 9 do zarządzenia NFZ 46/2026/DSOZ z 30.04.2026 r. oraz pierwszą warstwę publicznych danych umownych z API NFZ.
+HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 0.5 zaczyna się od strony modułów; pierwszym działającym modułem jest mobilny Gruper JGP.
 
-Zakres pierwszej warstwy:
+## Zakres wersji 0.5
 
-- wyszukiwanie po kodzie grupy, kodzie produktu, procedurze ICD-9, rozpoznaniu ICD-10 i nazwie,
-- wszystkie wartości punktowe opublikowane w katalogu 1a,
-- warunki grupowania oraz listy procedur i rozpoznań z charakterystyki JGP,
-- zakresy świadczeń, w których katalog 1a dopuszcza rozliczenie grupy,
-- zweryfikowany kod zakresu, produkt jednostkowy, okres i średnią cenę punktu z API Umowy NFZ dla aktualnego profilu,
-- wyraźne rozdzielenie danych źródłowych NFZ od ustawień i obliczeń użytkownika,
-- liczba dni finansowanych grupą i osobodzień ponad ryczałt,
-- kalkulacja dla ceny punktu i ręcznie wpisanego współczynnika przypisanego wyłącznie do wybranej grupy,
-- działanie offline po pierwszym uruchomieniu,
-- zapisywanie ustawień wyłącznie w pamięci urządzenia.
+- osobna strona główna z modułami HospitalAPP,
+- wyszukiwanie w odrębnych trybach: grupa JGP, rozpoznanie ICD-10 i procedura ICD-9,
+- 702 grupy JGP oraz 35 060 pozycji ICD z oficjalnych załączników 1a i 9 do zarządzenia NFZ 46/2026/DSOZ z 30.04.2026 r.,
+- czytelne ścieżki grupowania oraz rozwijane listy wymaganych procedur i rozpoznań,
+- wartości punktowe, zakresy świadczeń, dni finansowane grupą i osobodzień ponad ryczałt,
+- zanonimizowany profil referencyjny z kodem zakresu, produktem jednostkowym, okresem i średnią ceną punktu z API Umowy NFZ,
+- profil własnej placówki zapisywany lokalnie,
+- jawny wybór ceny: z dostępnego profilu umowy albo własna,
+- dowolna liczba współczynników przypisanych wyłącznie do wybranej grupy, z nazwą, źródłem i sposobem łączenia,
+- działanie offline po pierwszym pełnym uruchomieniu,
+- zapisywanie ustawień i kalkulacji wyłącznie w pamięci urządzenia.
 
-Źródła:
+Publiczny katalog placówek w API NFZ nie oznacza automatycznie, że aplikacja zna ceny punktu każdej placówki. Publiczna wersja demonstracyjna nie pokazuje nazwy szpitala, kodu świadczeniodawcy ani numeru umowy. Cena jest prezentowana jako „z umowy” tylko dla przygotowanego profilu referencyjnego; w profilu własnym użytkownik podaje cenę samodzielnie.
 
-- https://baw.nfz.gov.pl/NFZ/document/43868/Zarzadzenie-46_2026_DSOZ
-- https://api.nfz.gov.pl/
+## Źródła
+
+- [zarządzenie NFZ 46/2026/DSOZ](https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html),
+- [API Umowy NFZ](https://api.nfz.gov.pl/app-umw-api/),
+- [Informator o umowach NFZ – Małopolska](https://aplikacje.nfz.gov.pl/umowy/Provider/Search?Branch=06),
+- [aktualna macierz łączenia współczynników NFZ](https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/komunikat-dla-swiadczeniodawcow-i-tworcow-oprogramowania%2C8872.html).
+
+HospitalAPP nie jest produktem NFZ. Dane źródłowe są oddzielone w interfejsie od założeń i obliczeń użytkownika.
+
+## Kierunek produktu
+
+HospitalAPP ma docelowo skupiać proste narzędzia dla osób zarządzających szpitalem, oparte na publicznych danych i jednoznacznie opisanych założeniach. Kolejność rozwoju:
+
+1. dopracowanie Grupera JGP,
+2. kalkulator wynagrodzeń medycznych: stawki godzinowe, nocne, dyżurowe i nadgodziny, netto, brutto, pełny koszt pracodawcy oraz porównanie umowy o pracę z kontraktem,
+3. analiza wyników i rachunek kosztów,
+4. programy naprawcze,
+5. monitor zmian legislacyjnych i komunikatów branżowych.
+
+Kafelki przyszłych modułów są wyłącznie zapowiedzią. Nie prezentują obliczeń, dopóki reguły prawne, podatkowe i źródła danych nie zostaną zweryfikowane oraz opatrzone datą obowiązywania.
 
 ## Uruchomienie lokalne
 
-Uruchom dowolny serwer statyczny w katalogu projektu, np. `python3 -m http.server 8080`, a następnie otwórz `http://localhost:8080`.
+Uruchom serwer statyczny w katalogu projektu:
 
-Service worker i instalacja PWA wymagają hostingu przez HTTPS (wyjątkiem jest `localhost`).
+```bash
+npm run serve
+```
 
-## Aktualizacja danych
+Następnie otwórz `http://localhost:8080`. Service worker i instalacja PWA wymagają hostingu przez HTTPS; wyjątkiem jest `localhost`.
+
+## Aktualizacja danych JGP
 
 Po pobraniu nowych oficjalnych załączników 1a i 9 uruchom:
 
@@ -34,7 +57,7 @@ Po pobraniu nowych oficjalnych załączników 1a i 9 uruchom:
 python3 scripts/import_nfz_reference.py /ścieżka/do/Zalacznik1a.xlsx /ścieżka/do/Zalacznik9.xlsx
 ```
 
-Importer sprawdza komplet 702 grup i tworzy podzielone pliki `data/jgp-data-*.js` oraz `data/jgp-characteristics-*.js`, używane także w trybie offline.
+Importer sprawdza komplet grup i tworzy podzielone pliki `data/jgp-data-*.js` oraz `data/jgp-characteristics-*.js`, używane także offline.
 
 Publiczny profil zakresu umowy można odświeżyć poleceniem:
 
@@ -42,7 +65,7 @@ Publiczny profil zakresu umowy można odświeżyć poleceniem:
 python3 scripts/sync_nfz_contract.py
 ```
 
-Skrypt korzysta z API Umowy NFZ v1.2 i nie zapisuje w aplikacji nazwy, adresu, NIP ani REGON świadczeniodawcy. Parametry innego profilu można podać przez `--year`, `--branch`, `--provider-code`, `--product-code` i `--agreement-code`.
+Skrypt korzysta z API Umowy NFZ v1.2. Do aplikacji zapisuje publiczną nazwę i kod świadczeniodawcy, lecz nie zapisuje adresu, NIP ani REGON. Inny profil można wskazać przez `--year`, `--branch`, `--provider-code`, `--provider-name`, `--product-code` i `--agreement-code`.
 
 ## Testy
 

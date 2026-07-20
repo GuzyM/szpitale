@@ -4,23 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b6b61">
-  <meta name="description" content="Mobilny katalog JGP: wycena, warunki grupowania, procedury, rozpoznania i zakresy świadczeń NFZ.">
+  <meta name="description" content="HospitalAPP: mobilny Gruper JGP, dane umów NFZ, wycena i analityka szpitalna.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HospitalAPP">
-  <title>HospitalAPP · Gruper JGP</title>
+  <title>HospitalAPP</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand-mark" aria-hidden="true">H</div>
+      <div class="topbar-leading">
+        <button id="back-button" class="icon-button back-button" type="button" aria-label="Wróć do strony głównej" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div id="brand-mark" class="brand-mark" aria-hidden="true">H</div>
+      </div>
       <div class="brand-copy">
-        <p class="eyebrow">HospitalAPP · moduł JGP</p>
-        <h1>Gruper i wycena JGP</h1>
+        <p id="topbar-eyebrow" class="eyebrow">Centrum analityki szpitalnej</p>
+        <h1 id="topbar-title">HospitalAPP</h1>
       </div>
       <button id="install-help-button" class="icon-button" type="button" aria-label="Jak zainstalować aplikację" title="Instalacja na iPhone">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
@@ -28,235 +33,402 @@
     </header>
 
     <main>
-      <nav class="module-tabs" aria-label="Moduły HospitalAPP">
-        <button class="module-tab active" type="button" aria-current="page">
-          <span>Gruper JGP</span>
-          <small>katalog i wycena</small>
-        </button>
-        <button class="module-tab" type="button" disabled>
-          <span>Analiza wyników</span>
-          <small>kolejny etap</small>
-        </button>
-      </nav>
-
-      <section class="search-section" aria-labelledby="search-label">
-        <div class="section-heading">
-          <div>
-            <p id="catalog-label" class="eyebrow">Załączniki 1a i 9 · 702 grupy</p>
-            <h2 id="search-label">Znajdź grupę</h2>
+      <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
+        <section class="home-hero">
+          <span class="home-kicker">Dane publiczne · narzędzia zarządcze</span>
+          <h2 id="home-title">Wszystko, czego potrzebujesz do analizy szpitala.</h2>
+          <p>Wybierz moduł. HospitalAPP prowadzi od danych NFZ do czytelnej kalkulacji.</p>
+          <div class="home-data-status">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span id="home-data-label">Aktualne dane JGP</span>
           </div>
-          <span id="connection-badge" class="status-badge">Online</span>
-        </div>
-
-        <form id="search-form" class="search-form" role="search">
-          <label class="sr-only" for="search-input">Kod grupy, produktu, zakresu umowy, procedury, rozpoznania lub nazwa</label>
-          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
-          <input id="search-input" type="search" value="N01" placeholder="N01, 72.1, O80.0, poród…" autocomplete="off" spellcheck="false">
-          <button class="search-button" type="submit">Szukaj</button>
-        </form>
-        <div id="suggestions" class="suggestions" aria-live="polite"></div>
-      </section>
-
-      <section id="result-card" class="result-card" aria-live="polite">
-        <div class="result-header">
-          <span id="group-code" class="group-code">N01</span>
-          <div class="result-name">
-            <h2 id="group-name">Poród *</h2>
-            <p id="group-product-code" class="muted">Kod produktu: 5.51.01.0013001</p>
-            <p id="group-section" class="muted">Położnictwo i opieka nad noworodkami</p>
-          </div>
-        </div>
-
-        <section id="contract-panel" class="contract-panel" aria-labelledby="contract-title">
-          <div class="contract-heading">
-            <div>
-              <p class="eyebrow">Publiczne dane umowy</p>
-              <h3 id="contract-title">Rozliczenie w profilu umowy</h3>
-            </div>
-            <span id="contract-status" class="verification-badge">Sprawdzanie</span>
-          </div>
-
-          <div id="contract-verified-content">
-            <dl class="contract-grid">
-              <div>
-                <dt>Zakres</dt>
-                <dd id="contract-scope-code">—</dd>
-                <small id="contract-scope-name">—</small>
-              </div>
-              <div>
-                <dt>Cena punktu</dt>
-                <dd id="contract-point-price">—</dd>
-                <small>średnia cena w planie umowy</small>
-              </div>
-              <div>
-                <dt>Produkt jednostkowy</dt>
-                <dd id="contract-unit-code">—</dd>
-                <small id="contract-unit-name">—</small>
-              </div>
-              <div>
-                <dt>Umowa i okres</dt>
-                <dd id="contract-agreement-code">—</dd>
-                <small id="contract-validity">—</small>
-              </div>
-            </dl>
-            <button id="use-contract-price" class="secondary-button" type="button">Użyj ceny z umowy</button>
-
-            <details id="contract-additions" class="contract-additions">
-              <summary>Produkty dodatkowe dostępne w zakresie</summary>
-              <div id="contract-addition-list"></div>
-            </details>
-          </div>
-
-          <p id="contract-empty" class="contract-empty" hidden>Ta grupa nie została jeszcze potwierdzona w aktualnym profilu umowy. Nadal możesz sprawdzić jej katalog NFZ i wykonać własną kalkulację.</p>
-          <p id="contract-source" class="contract-source">Źródło: API Umowy NFZ.</p>
         </section>
 
-        <div class="form-grid">
-          <label class="field">
-            <span>Tryb hospitalizacji</span>
-            <select id="hospitalization-mode"></select>
-          </label>
-          <label class="field">
-            <span>Cena za punkt <small id="point-price-source" class="field-source">wartość użytkownika</small></span>
-            <span class="input-with-unit">
-              <input id="point-price" type="number" value="1.96" min="0" step="0.01" inputmode="decimal">
-              <span>zł</span>
+        <div class="dashboard-heading">
+          <div>
+            <p class="eyebrow">Moduły</p>
+            <h2>Co chcesz zrobić?</h2>
+          </div>
+        </div>
+
+        <nav class="dashboard-grid" aria-label="Moduły HospitalAPP">
+          <button id="open-gruper" class="module-card module-card-primary" type="button">
+            <span class="module-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h10M4 17.5h7M18 14v7m-3.5-3.5h7"/></svg>
             </span>
-          </label>
-        </div>
+            <span class="module-card-copy">
+              <strong>Gruper JGP</strong>
+              <small>Wyszukaj, sprawdź warunki i wyceń</small>
+            </span>
+            <span class="module-arrow" aria-hidden="true">→</span>
+          </button>
 
-        <div class="stats-grid">
-          <article class="stat">
-            <span>Punkty JGP</span>
-            <strong id="points-value">1 994</strong>
-            <small>pkt</small>
-          </article>
-          <article class="stat">
-            <span>Wartość podstawowa</span>
-            <strong id="base-value">3 908,24 zł</strong>
-          </article>
-          <article class="stat accent">
-            <span>Łączny współczynnik</span>
-            <strong id="combined-factor">1,00</strong>
-          </article>
-        </div>
+          <button class="module-card" type="button" disabled>
+            <span class="module-icon module-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Analiza wyników</strong>
+              <small>Przychody, wykonanie i odchylenia</small>
+            </span>
+            <span class="module-state">Wkrótce</span>
+          </button>
 
-        <dl class="catalog-details" aria-label="Dodatkowe parametry z katalogu NFZ">
-          <div>
-            <dt>Dni finansowane grupą</dt>
-            <dd id="financed-days">—</dd>
-          </div>
-          <div>
-            <dt>Osobodzień ponad ryczałt</dt>
-            <dd id="extra-day-points">—</dd>
-          </div>
-        </dl>
+          <button class="module-card" type="button" disabled>
+            <span class="module-icon module-icon-payroll" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><path d="M3 21v-2a5 5 0 0 1 10 0v2M16 6h5m-2.5-2.5v5M16 13h5m-5 4h5m-5 4h3"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Kalkulator wynagrodzeń</strong>
+              <small>Godziny, dyżury, nadgodziny i kontrakt</small>
+            </span>
+            <span class="module-state">Po Gruperze</span>
+          </button>
 
-        <div class="coefficient-section">
+          <button class="module-card" type="button" disabled>
+            <span class="module-icon module-icon-purple" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 20h16M6 17V8h12v9M9 8V5h6v3M9 12h2m2 0h2m-6 3h2m2 0h2"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Umowy NFZ</strong>
+              <small>Profile placówek, zakresy i ceny</small>
+            </span>
+            <span class="module-state">Wkrótce</span>
+          </button>
+
+          <button class="module-card" type="button" disabled>
+            <span class="module-icon module-icon-orange" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Monitor zmian</strong>
+              <small>NFZ, AOTMiT i Ministerstwo Zdrowia</small>
+            </span>
+            <span class="module-state">Wkrótce</span>
+          </button>
+        </nav>
+
+        <button id="resume-group" class="recent-card" type="button" hidden>
+          <span>
+            <small>Ostatnio sprawdzane</small>
+            <strong id="resume-group-label">—</strong>
+          </span>
+          <span aria-hidden="true">Kontynuuj →</span>
+        </button>
+
+        <aside class="privacy-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+          <p>Ustawienia i własne kalkulacje pozostają na Twoim urządzeniu. Dane katalogowe i umowne pochodzą ze źródeł publicznych.</p>
+        </aside>
+      </section>
+
+      <section id="gruper-screen" class="screen gruper-screen" aria-labelledby="search-label" hidden>
+        <section class="provider-section surface-card" aria-labelledby="provider-title">
           <div class="section-heading compact">
             <div>
-              <p class="eyebrow">Ustawienia użytkownika</p>
-              <h3>Współczynniki</h3>
+              <p class="eyebrow">Profil rozliczeniowy</p>
+              <h2 id="provider-title">Wybierz placówkę</h2>
             </div>
+            <span id="provider-status" class="verification-badge">API NFZ</span>
           </div>
 
-          <label class="coefficient-toggle">
-            <input id="coefficient-enabled" type="checkbox">
-            <span class="toggle-switch" aria-hidden="true"></span>
-            <span class="coefficient-copy">
-              <strong>Czy stosujesz współczynnik?</strong>
-              <small>Włącz tylko wtedy, gdy wynika to z Twojej umowy lub aktualnych zasad NFZ.</small>
-            </span>
+          <label class="field provider-select-field">
+            <span>Świadczeniodawca</span>
+            <select id="provider-profile"></select>
           </label>
 
-          <div id="coefficient-controls" class="coefficient-controls" hidden>
+          <div id="custom-provider-fields" class="custom-provider-fields" hidden>
             <label class="field">
-              <span>Rodzaj współczynnika</span>
-              <select id="coefficient-select">
-                <option value="custom">Własny – wpisz ręcznie</option>
-              </select>
+              <span>Nazwa placówki</span>
+              <input id="custom-provider-name" type="text" placeholder="Np. Szpital Powiatowy…" autocomplete="organization">
             </label>
             <label class="field">
-              <span>Wartość współczynnika</span>
-              <input id="factor-custom" type="number" value="1.00" min="0" step="0.01" inputmode="decimal">
+              <span>Kod świadczeniodawcy</span>
+              <input id="custom-provider-code" type="text" placeholder="Np. 061/…" autocomplete="off" spellcheck="false">
+            </label>
+            <a class="provider-lookup-link" href="https://aplikacje.nfz.gov.pl/umowy/Provider/Search?Branch=06" target="_blank" rel="noopener">
+              Znajdź swoją placówkę i kod w Informatorze NFZ <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <div id="provider-summary" class="provider-summary">
+            <span class="provider-avatar" aria-hidden="true">NFZ</span>
+            <div>
+              <strong id="provider-name">—</strong>
+              <small><span id="provider-code">—</span> · Małopolski OW NFZ</small>
+            </div>
+          </div>
+          <p id="provider-help" class="provider-help">Ten profil jest publicznym wycinkiem umowy. Zmiana placówki zmienia dostępne zakresy i ceny.</p>
+        </section>
+
+        <section class="search-section" aria-labelledby="search-label">
+          <div class="section-heading">
+            <div>
+              <p id="catalog-label" class="eyebrow">Załączniki 1a i 9 · 702 grupy</p>
+              <h2 id="search-label">Co chcesz wyszukać?</h2>
+            </div>
+            <span id="connection-badge" class="status-badge">Online</span>
+          </div>
+
+          <div id="search-mode-grid" class="search-mode-grid" role="radiogroup" aria-label="Sposób wyszukiwania">
+            <button class="search-mode active" type="button" data-search-mode="group" role="radio" aria-checked="true">
+              <span class="search-mode-icon" aria-hidden="true">JGP</span>
+              <strong>Grupa</strong>
+              <small>kod lub nazwa</small>
+            </button>
+            <button class="search-mode" type="button" data-search-mode="diagnosis" role="radio" aria-checked="false">
+              <span class="search-mode-icon search-mode-icon-purple" aria-hidden="true">10</span>
+              <strong>Rozpoznanie</strong>
+              <small>ICD-10</small>
+            </button>
+            <button class="search-mode" type="button" data-search-mode="procedure" role="radio" aria-checked="false">
+              <span class="search-mode-icon search-mode-icon-blue" aria-hidden="true">9</span>
+              <strong>Procedura</strong>
+              <small>ICD-9</small>
+            </button>
+          </div>
+
+          <div class="search-prompt">
+            <span id="search-step-label">Wyszukiwanie po grupie JGP</span>
+            <small id="search-help">Wpisz kod grupy, kod produktu albo fragment nazwy.</small>
+          </div>
+
+          <form id="search-form" class="search-form" role="search">
+            <label class="sr-only" for="search-input">Wyszukiwana wartość</label>
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+            <input id="search-input" type="search" placeholder="Np. N01 lub poród" autocomplete="off" spellcheck="false">
+            <button class="search-button" type="submit">Szukaj</button>
+          </form>
+          <div id="suggestions" class="suggestions" aria-live="polite"></div>
+        </section>
+
+        <section id="result-card" class="result-card" aria-live="polite" hidden>
+          <div class="result-header">
+            <span id="group-code" class="group-code">—</span>
+            <div class="result-name">
+              <h2 id="group-name">—</h2>
+              <p id="group-product-code" class="muted">—</p>
+              <p id="group-section" class="muted">—</p>
+            </div>
+          </div>
+
+          <section id="contract-panel" class="contract-panel" aria-labelledby="contract-title">
+            <div class="contract-heading">
+              <div>
+                <p class="eyebrow">Publiczne dane wybranej placówki</p>
+                <h3 id="contract-title">Rozliczenie w profilu umowy</h3>
+                <small id="contract-provider-name" class="contract-provider-name">—</small>
+              </div>
+              <span id="contract-status" class="verification-badge">Sprawdzanie</span>
+            </div>
+
+            <div id="contract-verified-content">
+              <dl class="contract-grid">
+                <div>
+                  <dt>Zakres</dt>
+                  <dd id="contract-scope-code">—</dd>
+                  <small id="contract-scope-name">—</small>
+                </div>
+                <div>
+                  <dt>Cena punktu</dt>
+                  <dd id="contract-point-price">—</dd>
+                  <small>średnia cena w planie umowy</small>
+                </div>
+                <div>
+                  <dt>Produkt jednostkowy</dt>
+                  <dd id="contract-unit-code">—</dd>
+                  <small id="contract-unit-name">—</small>
+                </div>
+                <div>
+                  <dt>Umowa i okres</dt>
+                  <dd id="contract-agreement-code">—</dd>
+                  <small id="contract-validity">—</small>
+                </div>
+              </dl>
+
+              <details id="contract-additions" class="contract-additions">
+                <summary>Produkty dodatkowe dostępne w zakresie</summary>
+                <div id="contract-addition-list"></div>
+              </details>
+            </div>
+
+            <p id="contract-empty" class="contract-empty" hidden>Ta grupa nie została potwierdzona w wybranym profilu umowy. Możesz nadal użyć katalogu NFZ i własnej ceny.</p>
+            <p id="contract-source" class="contract-source">Źródło: API Umowy NFZ.</p>
+          </section>
+
+          <div class="calculation-heading">
+            <p class="eyebrow">Kalkulacja HospitalAPP</p>
+            <h3>Ustaw wycenę</h3>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Tryb hospitalizacji</span>
+              <select id="hospitalization-mode"></select>
+            </label>
+            <fieldset class="price-source-fieldset">
+              <legend>Źródło ceny punktu</legend>
+              <div class="price-source-options">
+                <label id="contract-price-choice" class="price-source-choice">
+                  <input id="price-source-contract" type="radio" name="price-source" value="contract">
+                  <span>
+                    <strong>Z umowy</strong>
+                    <small id="contract-price-choice-label">brak ceny</small>
+                  </span>
+                </label>
+                <label class="price-source-choice">
+                  <input id="price-source-custom" type="radio" name="price-source" value="custom">
+                  <span>
+                    <strong>Własna</strong>
+                    <small>wpisz ręcznie</small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+            <label class="field point-price-field">
+              <span>Cena za punkt <small id="point-price-source" class="field-source">wartość użytkownika</small></span>
+              <span class="input-with-unit">
+                <input id="point-price" type="number" value="1.96" min="0" step="0.01" inputmode="decimal">
+                <span>zł</span>
+              </span>
             </label>
           </div>
 
-          <p id="factor-formula" class="formula">Współczynnik nie jest stosowany.</p>
-        </div>
+          <div class="stats-grid">
+            <article class="stat">
+              <span>Punkty JGP</span>
+              <strong id="points-value">—</strong>
+              <small>pkt</small>
+            </article>
+            <article class="stat">
+              <span>Wartość podstawowa</span>
+              <strong id="base-value">—</strong>
+            </article>
+            <article class="stat accent">
+              <span>Łączny współczynnik</span>
+              <strong id="combined-factor">1,00</strong>
+            </article>
+          </div>
 
-        <div class="total-panel">
+          <dl class="catalog-details" aria-label="Dodatkowe parametry z katalogu NFZ">
+            <div>
+              <dt>Dni finansowane grupą</dt>
+              <dd id="financed-days">—</dd>
+            </div>
+            <div>
+              <dt>Osobodzień ponad ryczałt</dt>
+              <dd id="extra-day-points">—</dd>
+            </div>
+          </dl>
+
+          <div class="coefficient-section">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Ustawienia użytkownika</p>
+                <h3>Współczynniki</h3>
+              </div>
+              <span id="coefficient-count" class="count-badge">0</span>
+            </div>
+
+            <p class="coefficient-intro">Dodaj tyle współczynników, ile rzeczywiście dotyczy świadczenia. Każdy zapisz z jego źródłem i sposobem łączenia.</p>
+            <div id="coefficient-list" class="coefficient-list"></div>
+            <div id="coefficient-empty" class="coefficient-empty">
+              <span aria-hidden="true">×1,00</span>
+              <p>Brak zastosowanych współczynników.</p>
+            </div>
+            <button id="add-coefficient" class="add-coefficient-button" type="button">
+              <span aria-hidden="true">＋</span> Dodaj współczynnik
+            </button>
+
+            <details class="coefficient-guide">
+              <summary>Jak łączyć współczynniki i skąd je brać?</summary>
+              <div>
+                <p><strong>Sumowanie NFZ:</strong> ΣW − (n−1). <strong>Mnożenie:</strong> iloczyn wartości; współczynniki mnożące są stosowane do wyniku pozostałych.</p>
+                <p>Wartość sprawdź w aktualnym zarządzeniu, słowniku SP_ROZ albo aneksie swojej umowy. AOTMiT ustala taryfy, ale nie jest to jedna uniwersalna lista współczynników dla każdego szpitala.</p>
+                <a href="https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/komunikat-dla-swiadczeniodawcow-i-tworcow-oprogramowania%2C8872.html" target="_blank" rel="noopener">Macierz łączenia NFZ z 30.12.2025</a>
+                <a href="https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/nowe-standardy-zywienia-w-szpitalach-i-zmiany-w-wycenach-swiadczen-nfz-wprowadza-rozwiazania-systemowe%2C8896.html" target="_blank" rel="noopener">Korekta standardu żywienia 2026</a>
+              </div>
+            </details>
+
+            <p id="factor-formula" class="formula">Współczynnik nie jest stosowany.</p>
+          </div>
+
+          <div class="total-panel">
+            <div>
+              <span>Szacowana wartość</span>
+              <strong id="total-value">—</strong>
+            </div>
+            <p id="total-equation">—</p>
+          </div>
+
+          <div class="reference-sections">
+            <details id="grouping-details" class="reference-details" open>
+              <summary>
+                <span>
+                  <strong>Warunki grupowania</strong>
+                  <small id="grouping-summary">Charakterystyka JGP</small>
+                </span>
+                <span class="summary-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="reference-content">
+                <p class="reference-source">Źródło: załącznik 9 „Charakterystyka JGP”. Każda karta poniżej jest odrębną ścieżką spełnienia warunku.</p>
+                <h4 class="reference-subheading">Ścieżki grupowania</h4>
+                <div id="grouping-rules" class="rule-list"></div>
+                <h4 id="direct-lists-heading" class="reference-subheading">Kody zapisane bezpośrednio w grupie</h4>
+                <div id="direct-code-lists" class="code-list-stack"></div>
+                <div id="referenced-code-lists" class="referenced-lists"></div>
+              </div>
+            </details>
+
+            <details id="scope-details" class="reference-details">
+              <summary>
+                <span>
+                  <strong>Zakresy rozliczeń</strong>
+                  <small id="scope-summary">Według katalogu grup</small>
+                </span>
+                <span class="summary-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="reference-content">
+                <p class="reference-source">Źródło: kolumny „Zakresy świadczeń” w załączniku 1a.</p>
+                <div id="scope-list" class="scope-list"></div>
+                <p id="catalog-note" class="catalog-note" hidden></p>
+                <p class="contract-note"><strong>Jak czytać ten widok:</strong> katalog 1a wskazuje dopuszczone rodziny zakresów. Dokładny kod i cenę dla wybranego świadczeniodawcy pokazuje profil umowy wyżej.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="empty-state" class="empty-state" hidden>
+          <div class="empty-icon" aria-hidden="true">?</div>
+          <h2>Nie znaleziono wyniku</h2>
+          <p id="empty-state-copy">Sprawdź wpisany kod lub fragment nazwy.</p>
+        </section>
+
+        <aside class="notice">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>Punktacje i warunki grupowania pochodzą z katalogów NFZ. Cena umowna pochodzi z publicznego API NFZ. Współczynniki i wynik kalkulacji wymagają potwierdzenia z aktualną umową i zasadami rozliczeń.</p>
+        </aside>
+
+        <details class="sources">
+          <summary>Wersja danych i źródła</summary>
           <div>
-            <span>Szacowana wartość</span>
-            <strong id="total-value">3 908,24 zł</strong>
+            <p><strong id="source-order">46/2026/DSOZ</strong> · zarządzenie z 30.04.2026 r.</p>
+            <p><span id="source-catalog">Załącznik 1a – katalog grup</span> · <span id="source-count">702 grupy JGP</span>.</p>
+            <p id="source-characteristics">Załącznik 9 – charakterystyka JGP.</p>
+            <p><strong id="source-api-label">API Umowy NFZ</strong> · aktualizacja profilu: <span id="source-api-date">—</span>.</p>
+            <p>Cena własna, placówka własna i współczynniki są zapisywane wyłącznie na urządzeniu.</p>
+            <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Zarządzenie NFZ 46/2026/DSOZ</a>
+            <a href="https://api.nfz.gov.pl/" target="_blank" rel="noopener">API Umowy NFZ</a>
+            <a href="https://aplikacje.nfz.gov.pl/umowy/Provider/Search?Branch=06" target="_blank" rel="noopener">Informator o umowach · Małopolska</a>
+            <p class="source-disclaimer">Źródło danych umownych: Narodowy Fundusz Zdrowia. Obliczenia i układ danych przygotowuje HospitalAPP; aplikacja nie jest produktem NFZ.</p>
           </div>
-          <p id="total-equation">1 994 pkt × 1,96 zł × 1,00</p>
-        </div>
-
-        <div class="reference-sections">
-          <details id="grouping-details" class="reference-details">
-            <summary>
-              <span>
-                <strong>Warunki grupowania</strong>
-                <small id="grouping-summary">Charakterystyka JGP</small>
-              </span>
-              <span class="summary-chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="reference-content">
-              <p class="reference-source">Źródło: załącznik 9 „Charakterystyka JGP”.</p>
-              <div id="grouping-rules" class="rule-list"></div>
-              <div id="direct-code-lists" class="code-list-stack"></div>
-              <div id="referenced-code-lists" class="referenced-lists"></div>
-            </div>
-          </details>
-
-          <details id="scope-details" class="reference-details">
-            <summary>
-              <span>
-                <strong>Zakresy rozliczeń</strong>
-                <small id="scope-summary">Według katalogu grup</small>
-              </span>
-              <span class="summary-chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="reference-content">
-              <p class="reference-source">Źródło: kolumny „Zakresy świadczeń” w załączniku 1a.</p>
-              <div id="scope-list" class="scope-list"></div>
-              <p id="catalog-note" class="catalog-note" hidden></p>
-              <p class="contract-note"><strong>Jak czytać ten widok:</strong> lista pokazuje krajowe zakresy dopuszczone przez katalog 1a. Jeżeli grupa występuje w aktualnym profilu umowy, jej dokładny kod zakresu i cenę pokazujemy wyżej na podstawie API NFZ.</p>
-            </div>
-          </details>
-        </div>
+        </details>
       </section>
-
-      <section id="empty-state" class="empty-state" hidden>
-        <div class="empty-icon" aria-hidden="true">?</div>
-        <h2>Nie znaleziono grupy</h2>
-        <p>Sprawdź kod grupy, produktu, procedury ICD-9, rozpoznania ICD-10 albo fragment nazwy.</p>
-      </section>
-
-      <aside class="notice">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-        <p>Punktacje i zakresy katalogowe pochodzą z załączników NFZ, a dane profilu umowy z API Umowy NFZ. Własne współczynniki i obliczenia HospitalAPP nie są oficjalną decyzją rozliczeniową NFZ.</p>
-      </aside>
-
-      <details class="sources">
-        <summary>Wersja danych i źródła</summary>
-        <div>
-          <p><strong id="source-order">46/2026/DSOZ</strong> · zarządzenie z 30.04.2026 r.</p>
-          <p><span id="source-catalog">Załącznik 1a – katalog grup</span> · <span id="source-count">702 grupy JGP</span>.</p>
-          <p id="source-characteristics">Załącznik 9 – charakterystyka JGP.</p>
-          <p><strong id="source-api-label">API Umowy NFZ</strong> · aktualizacja profilu: <span id="source-api-date">—</span>.</p>
-          <p>Cena punktu i ustawienia są zapisywane wyłącznie na urządzeniu.</p>
-          <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Zarządzenie NFZ 46/2026/DSOZ</a>
-          <a href="https://api.nfz.gov.pl/" target="_blank" rel="noopener">API Umowy NFZ</a>
-          <p class="source-disclaimer">Źródło danych umownych: Narodowy Fundusz Zdrowia. Obliczenia i zestawienia przygotowuje HospitalAPP; aplikacja nie jest produktem NFZ.</p>
-        </div>
-      </details>
     </main>
 
     <footer>
       <span>HospitalAPP</span>
-      <span>v0.4 · JGP + dane umowy NFZ</span>
+      <span>v0.5 · wersja robocza</span>
     </footer>
   </div>
 

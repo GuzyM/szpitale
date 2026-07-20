@@ -8,8 +8,11 @@ window.NFZ_CONTRACT = {
     agreementUpdatedAt: "2026-07-16T19:00:52+02:00",
     year: 2026,
     branch: "06",
-    agreementCode: "061/100014/SZP/08/2026",
-    profileLabel: "Profil umowy 2026"
+    providerCode: "dane zanonimizowane",
+    providerName: "Anonimowy profil referencyjny",
+    providerDisplayName: "Profil referencyjny · Małopolska",
+    agreementCode: "dane zanonimizowane",
+    profileLabel: "Anonimowy profil umowy 2026"
   },
   scopes: [
     {
