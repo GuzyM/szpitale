@@ -1,0 +1,36 @@
+name: Aktualizacja legislacji MZ
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Ustaw Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sprawdź źródło legislacji MZ
+        run: python3 scripts/sync_mz_legislation.py
+
+      - name: Zapisz zmianę danych
+        run: |
+          if git diff --quiet -- data/mz-legislation.json; then
+            echo "Brak zmian."
+            exit 0
+          fi
+          git config user.name "HospitalAPP Bot"
+          git config user.email "hospitalapp-bot@users.noreply.github.com"
+          git add data/mz-legislation.json
+          git commit -m "data: aktualizacja legislacji MZ"
+          git push
