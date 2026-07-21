@@ -28,6 +28,7 @@ function createApp() {
       return a.localeCompare(b);
     });
   const script = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+  const legislation = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "mz-legislation.json"), "utf8"));
   const dom = new JSDOM(html, {
     runScripts: "dangerously",
     url: "https://example.test/"
@@ -39,6 +40,11 @@ function createApp() {
     dom.window.eval(fs.readFileSync(path.join(ROOT, "data", name), "utf8"));
   });
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "nfz-contract.js"), "utf8"));
+  dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "nfz-coefficients.js"), "utf8"));
+  dom.window.fetch = async () => ({
+    ok: true,
+    json: async () => legislation
+  });
   dom.window.eval(script);
   return dom;
 }
@@ -82,8 +88,9 @@ test("HospitalAPP opens on a separate modern module home screen", () => {
   assert.equal(document.querySelector("#gruper-screen").hidden, true);
   assert.match(document.querySelector("#home-title").textContent, /analizy szpitala/i);
   assert.equal(document.querySelector("#open-gruper").disabled, false);
-  assert.equal(document.querySelectorAll(".module-card:disabled").length, 4);
+  assert.equal(document.querySelectorAll(".module-card:disabled").length, 3);
   assert.match(document.querySelector(".dashboard-grid").textContent, /Kalkulator wynagrodzeń/);
+  assert.equal(document.querySelector("#open-legislation").disabled, false);
 });
 
 test("entering Gruper first asks how the user wants to search", () => {
@@ -228,6 +235,65 @@ test("multiple coefficients follow NFZ sum and multiplication modes", () => {
   assert.match(document.querySelector("#factor-formula").textContent, /sumowanie NFZ/i);
   assert.match(document.querySelector("#factor-formula").textContent, /mnożenie/i);
   assert.match(document.querySelector("#total-value").textContent, /5[\s\u00a0]?334,75/);
+});
+
+test("N01 suggests only matching public rules and adds a selected sourced variant", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  openGruper(dom);
+  search(dom, "N01");
+
+  assert.equal(document.querySelector("#coefficient-enabled").checked, false);
+  assert.equal(document.querySelector("#coefficient-tools").hidden, true);
+  const toggle = document.querySelector("#coefficient-enabled");
+  toggle.checked = true;
+  change(dom.window, toggle);
+
+  assert.equal(document.querySelector("#coefficient-tools").hidden, false);
+  assert.equal(document.querySelectorAll("#coefficient-suggestion-list .registry-rule-card").length, 2);
+  assert.match(document.querySelector("#coefficient-suggestion-list").textContent, /znieczuleni/i);
+  assert.match(document.querySelector("#coefficient-suggestion-list").textContent, /N01 i opieki nad noworodkiem N20/);
+
+  const variant = document.querySelector('[data-rule-variant="obstetric-anesthesia-share"]');
+  variant.value = "above-35";
+  document.querySelector('[data-add-rule="obstetric-anesthesia-share"]').click();
+
+  assert.equal(document.querySelector("#coefficient-count").textContent, "1");
+  assert.equal(document.querySelector("#combined-factor").textContent, "1,21");
+  assert.match(document.querySelector(".coefficient-item-source").href, /nfz\.gov\.pl/);
+});
+
+test("a group without mapped public rules does not inherit obstetric suggestions", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  openGruper(dom);
+  search(dom, "A01");
+  const toggle = document.querySelector("#coefficient-enabled");
+  toggle.checked = true;
+  change(dom.window, toggle);
+
+  assert.equal(document.querySelectorAll("#coefficient-suggestion-list .registry-rule-card").length, 0);
+  assert.equal(document.querySelector("#coefficient-suggestion-empty").hidden, false);
+  assert.doesNotMatch(document.querySelector("#coefficient-suggestions-title").parentElement.parentElement.textContent, /N20/);
+});
+
+test("Legislacja MZ opens as a separate module and refreshes official links", async () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-legislation").click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+
+  assert.equal(document.querySelector("#home-screen").hidden, true);
+  assert.equal(document.querySelector("#gruper-screen").hidden, true);
+  assert.equal(document.querySelector("#legislation-screen").hidden, false);
+  assert.equal(document.querySelectorAll("#legislation-list .legislation-item").length, 3);
+  assert.match(document.querySelector("#legislation-list").textContent, /Rządowym Procesie Legislacyjnym/);
+  assert.equal(
+    Array.from(document.querySelectorAll("#legislation-list a")).every((link) => (
+      link.hostname === "legislacja.gov.pl" || link.hostname === "www.gov.pl"
+    )),
+    true
+  );
 });
 
 test("coefficients can be removed and remain isolated to their JGP group", () => {
