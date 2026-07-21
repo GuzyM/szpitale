@@ -3,12 +3,16 @@
 const CATALOG = window.JGP_CATALOG || { meta: {}, groups: [] };
 const CHARACTERISTICS = window.JGP_CHARACTERISTICS || { meta: {}, blocks: {} };
 const CONTRACT_DATA = window.NFZ_CONTRACT || { meta: {}, scopes: [] };
+const COEFFICIENT_REGISTRY = window.HOSPITALAPP_COEFFICIENTS || { meta: {}, rules: [] };
 const GROUPS = CATALOG.groups || [];
 const BLOCKS = CHARACTERISTICS.blocks || {};
 const GROUP_BY_CODE = new Map(GROUPS.map((group) => [group.code, group]));
 
-const STORAGE_KEY = "hospitalapp-jgp-v05";
-const PREVIOUS_STORAGE_KEYS = ["hospitalapp-jgp-v04", "jgp-calculator-v03"];
+const STORAGE_KEY = "hospitalapp-jgp-v06";
+const PREVIOUS_STORAGE_KEYS = ["hospitalapp-jgp-v05", "hospitalapp-jgp-v04", "jgp-calculator-v03"];
+const LEGISLATION_CHECK_KEY = "hospitalapp-mz-legislation-last-check";
+const LEGISLATION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000;
+const LEGISLATION_DATA_URL = "./data/mz-legislation.json";
 const MODE_LABELS = {
   ordinary: "Hospitalizacja",
   planned: "Hospitalizacja planowa",
@@ -70,11 +74,20 @@ const BLOCK_TO_GROUPS = buildBlockToGroupMap();
 let coefficientSequence = 0;
 let state = loadState();
 let selectedGroup = state.groupCode ? GROUP_BY_CODE.get(state.groupCode) || null : null;
+let legislationData = {
+  meta: {
+    checkedAt: "2026-07-21T00:00:00+02:00",
+    sourceLabel: "Rządowy Proces Legislacyjny · Ministerstwo Zdrowia"
+  },
+  items: []
+};
 
 const elements = {
   homeScreen: document.querySelector("#home-screen"),
   gruperScreen: document.querySelector("#gruper-screen"),
+  legislationScreen: document.querySelector("#legislation-screen"),
   openGruper: document.querySelector("#open-gruper"),
+  openLegislation: document.querySelector("#open-legislation"),
   resumeGroup: document.querySelector("#resume-group"),
   resumeGroupLabel: document.querySelector("#resume-group-label"),
   backButton: document.querySelector("#back-button"),
@@ -134,9 +147,16 @@ const elements = {
   financedDays: document.querySelector("#financed-days"),
   extraDayPoints: document.querySelector("#extra-day-points"),
   coefficientCount: document.querySelector("#coefficient-count"),
+  coefficientEnabled: document.querySelector("#coefficient-enabled"),
+  coefficientTools: document.querySelector("#coefficient-tools"),
   coefficientList: document.querySelector("#coefficient-list"),
   coefficientEmpty: document.querySelector("#coefficient-empty"),
   addCoefficient: document.querySelector("#add-coefficient"),
+  coefficientSuggestionCount: document.querySelector("#coefficient-suggestion-count"),
+  coefficientSuggestionList: document.querySelector("#coefficient-suggestion-list"),
+  coefficientSuggestionEmpty: document.querySelector("#coefficient-suggestion-empty"),
+  coefficientRegistryNote: document.querySelector("#coefficient-registry-note"),
+  coefficientRegistryList: document.querySelector("#coefficient-registry-list"),
   groupingSummary: document.querySelector("#grouping-summary"),
   groupingRules: document.querySelector("#grouping-rules"),
   directListsHeading: document.querySelector("#direct-lists-heading"),
@@ -154,7 +174,14 @@ const elements = {
   sourceCount: document.querySelector("#source-count"),
   sourceCharacteristics: document.querySelector("#source-characteristics"),
   sourceApiLabel: document.querySelector("#source-api-label"),
-  sourceApiDate: document.querySelector("#source-api-date")
+  sourceApiDate: document.querySelector("#source-api-date"),
+  legislationStatus: document.querySelector("#legislation-status"),
+  legislationUpdatedLabel: document.querySelector("#legislation-updated-label"),
+  refreshLegislation: document.querySelector("#refresh-legislation"),
+  legislationSearch: document.querySelector("#legislation-search"),
+  legislationList: document.querySelector("#legislation-list"),
+  legislationCount: document.querySelector("#legislation-count"),
+  legislationEmpty: document.querySelector("#legislation-empty")
 };
 
 const numberFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -181,6 +208,7 @@ function defaultState() {
     modeByGroup: {},
     priceSource: "contract",
     customPrice: 1.96,
+    coefficientEnabledByGroup: {},
     coefficientsByGroup: {}
   };
 }
@@ -197,6 +225,7 @@ function loadState() {
     const saved = raw ? JSON.parse(raw) : {};
     const merged = { ...defaultState(), ...saved };
     merged.modeByGroup = { ...(saved.modeByGroup || {}) };
+    merged.coefficientEnabledByGroup = { ...(saved.coefficientEnabledByGroup || {}) };
     merged.coefficientsByGroup = { ...(saved.coefficientsByGroup || {}) };
     merged.customPrice = Number(saved.customPrice ?? saved.price ?? 1.96) || 1.96;
     if (!SEARCH_MODES[merged.searchMode]) merged.searchMode = "group";
@@ -214,6 +243,12 @@ function loadState() {
         combination: "sum",
         source: "custom"
       }];
+      merged.coefficientEnabledByGroup[groupCode] = true;
+    });
+    Object.entries(merged.coefficientsByGroup).forEach(([groupCode, items]) => {
+      if (Array.isArray(items) && items.length && merged.coefficientEnabledByGroup[groupCode] == null) {
+        merged.coefficientEnabledByGroup[groupCode] = true;
+      }
     });
     return merged;
   } catch {
@@ -442,14 +477,23 @@ function renderProviderSummary() {
 
 function showScreen(screen, options = {}) {
   const isHome = screen === "home";
+  const isGruper = screen === "gruper";
+  const isLegislation = screen === "legislation";
   elements.homeScreen.hidden = !isHome;
-  elements.gruperScreen.hidden = isHome;
+  elements.gruperScreen.hidden = !isGruper;
+  elements.legislationScreen.hidden = !isLegislation;
   elements.backButton.hidden = isHome;
   elements.brandMark.hidden = !isHome;
-  elements.topbarEyebrow.textContent = isHome ? "Centrum analityki szpitalnej" : "HospitalAPP · moduł JGP";
-  elements.topbarTitle.textContent = isHome ? "HospitalAPP" : "Gruper i wycena JGP";
-  document.title = isHome ? "HospitalAPP" : "HospitalAPP · Gruper JGP";
-  if (!isHome && !options.keepResult) {
+  elements.topbarEyebrow.textContent = isHome
+    ? "Centrum analityki szpitalnej"
+    : isGruper ? "HospitalAPP · moduł JGP" : "HospitalAPP · źródła publiczne";
+  elements.topbarTitle.textContent = isHome
+    ? "HospitalAPP"
+    : isGruper ? "Gruper i wycena JGP" : "Legislacja MZ";
+  document.title = isHome
+    ? "HospitalAPP"
+    : isGruper ? "HospitalAPP · Gruper JGP" : "HospitalAPP · Legislacja MZ";
+  if (isGruper && !options.keepResult) {
     elements.resultCard.hidden = true;
     elements.emptyState.hidden = true;
     elements.suggestions.replaceChildren();
@@ -767,6 +811,156 @@ function coefficientItems() {
   return Array.isArray(items) ? items : [];
 }
 
+function coefficientsEnabled() {
+  return Boolean(selectedGroup && state.coefficientEnabledByGroup[selectedGroup.code]);
+}
+
+function ruleMatchesGroup(rule, group = selectedGroup) {
+  if (!group || rule.catalogOnly) return false;
+  if ((rule.excludedGroupCodes || []).includes(group.code)) return false;
+  if ((rule.groupCodes || []).includes(group.code)) return true;
+  return (rule.groupPrefixes || []).some((prefix) => group.code.startsWith(prefix));
+}
+
+function matchingCoefficientRules(group = selectedGroup) {
+  return (COEFFICIENT_REGISTRY.rules || []).filter((rule) => ruleMatchesGroup(rule, group));
+}
+
+function ruleValueLabel(rule) {
+  if (Array.isArray(rule.variants) && rule.variants.length) {
+    return rule.variants.map((variant) => preciseFactorFormatter.format(variant.value)).join(" / ");
+  }
+  if (Number.isFinite(Number(rule.value))) return preciseFactorFormatter.format(rule.value);
+  return "wartość zmienna";
+}
+
+function createSourceLink(rule, className = "coefficient-source-link") {
+  const link = document.createElement("a");
+  link.className = className;
+  link.href = rule.sourceUrl;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = "Otwórz źródło ↗";
+  link.setAttribute("aria-label", `${rule.sourceTitle || "Otwórz źródło"} (otwiera w nowej karcie)`);
+  return link;
+}
+
+function selectedVariantForRule(rule, container = elements.coefficientSuggestionList) {
+  if (!Array.isArray(rule.variants) || !rule.variants.length) {
+    return { id: "fixed", label: "", value: Number(rule.value) };
+  }
+  const select = container.querySelector(`[data-rule-variant="${rule.id}"]`);
+  return rule.variants.find((variant) => variant.id === select?.value) || rule.variants[0];
+}
+
+function addCoefficientFromRule(rule) {
+  if (!selectedGroup || rule.selectable === false) return;
+  const variant = selectedVariantForRule(rule);
+  if (!Number.isFinite(Number(variant.value))) return;
+  const name = variant.label ? `${rule.shortTitle || rule.title} · ${variant.label}` : (rule.shortTitle || rule.title);
+  const existingItems = coefficientItems();
+  const nextItem = {
+    id: `registry-${rule.id}-${Date.now()}`,
+    name,
+    value: Number(variant.value),
+    combination: rule.combination === "multiply" ? "multiply" : "sum",
+    source: "nfz",
+    registryId: rule.id,
+    registryVariantId: variant.id,
+    exclusiveGroup: rule.exclusiveGroup || rule.id,
+    sourceUrl: rule.sourceUrl,
+    sourceTitle: rule.sourceTitle,
+    statusLabel: rule.statusLabel
+  };
+  const filtered = existingItems.filter((item) => (
+    item.registryId !== rule.id
+    && (!nextItem.exclusiveGroup || item.exclusiveGroup !== nextItem.exclusiveGroup)
+  ));
+  state.coefficientsByGroup[selectedGroup.code] = [...filtered, nextItem];
+  state.coefficientEnabledByGroup[selectedGroup.code] = true;
+  saveState();
+  renderCoefficients();
+  updateCalculation();
+}
+
+function createRegistryRuleCard(rule, options = {}) {
+  const card = document.createElement("article");
+  const top = document.createElement("div");
+  const titleWrap = document.createElement("div");
+  const title = document.createElement("strong");
+  const value = document.createElement("span");
+  const status = document.createElement("small");
+  const condition = document.createElement("p");
+  const footer = document.createElement("div");
+  card.className = `registry-rule-card status-${rule.status || "unknown"}`;
+  top.className = "registry-rule-top";
+  titleWrap.className = "registry-rule-title";
+  value.className = "registry-rule-value";
+  status.className = "registry-rule-status";
+  condition.className = "registry-rule-condition";
+  footer.className = "registry-rule-footer";
+  title.textContent = rule.title;
+  value.textContent = `× ${ruleValueLabel(rule)}`;
+  status.textContent = rule.statusLabel || rule.institution || "Reguła publiczna";
+  condition.textContent = rule.condition;
+  titleWrap.append(title, status);
+  top.append(titleWrap, value);
+  footer.appendChild(createSourceLink(rule));
+
+  if (options.selectable && rule.selectable !== false) {
+    if (Array.isArray(rule.variants) && rule.variants.length) {
+      const select = document.createElement("select");
+      select.className = "registry-variant-select";
+      select.dataset.ruleVariant = rule.id;
+      select.setAttribute("aria-label", `Wariant: ${rule.title}`);
+      rule.variants.forEach((variant) => {
+        const option = document.createElement("option");
+        option.value = variant.id;
+        option.textContent = `${variant.label} · ×${preciseFactorFormatter.format(variant.value)}`;
+        select.appendChild(option);
+      });
+      card.append(top, condition, select, footer);
+    } else {
+      card.append(top, condition, footer);
+    }
+    const button = document.createElement("button");
+    const alreadyAdded = coefficientItems().some((item) => item.registryId === rule.id);
+    button.type = "button";
+    button.className = "add-registry-rule";
+    button.dataset.addRule = rule.id;
+    button.textContent = alreadyAdded ? "Zaktualizuj w kalkulacji" : "Dodaj do kalkulacji";
+    footer.appendChild(button);
+  } else {
+    card.append(top, condition, footer);
+  }
+
+  if (rule.note) {
+    const note = document.createElement("small");
+    note.className = "registry-rule-note";
+    note.textContent = rule.note;
+    card.appendChild(note);
+  }
+  return card;
+}
+
+function renderCoefficientSuggestions() {
+  const rules = matchingCoefficientRules();
+  elements.coefficientSuggestionList.replaceChildren();
+  elements.coefficientSuggestionEmpty.hidden = rules.length > 0;
+  elements.coefficientSuggestionCount.textContent = `${rules.length} ${rules.length === 1 ? "reguła" : "reguły"}`;
+  rules.forEach((rule) => {
+    elements.coefficientSuggestionList.appendChild(createRegistryRuleCard(rule, { selectable: true }));
+  });
+}
+
+function renderCoefficientRegistry() {
+  elements.coefficientRegistryList.replaceChildren();
+  elements.coefficientRegistryNote.textContent = COEFFICIENT_REGISTRY.meta.disclaimer || "";
+  (COEFFICIENT_REGISTRY.rules || []).forEach((rule) => {
+    elements.coefficientRegistryList.appendChild(createRegistryRuleCard(rule));
+  });
+}
+
 function newCoefficient() {
   coefficientSequence += 1;
   return {
@@ -789,9 +983,13 @@ function coefficientField(labelText, control) {
 
 function renderCoefficients() {
   const items = coefficientItems();
+  const enabled = coefficientsEnabled();
+  elements.coefficientEnabled.checked = enabled;
+  elements.coefficientTools.hidden = !enabled;
   elements.coefficientList.replaceChildren();
   elements.coefficientEmpty.hidden = items.length > 0;
-  elements.coefficientCount.textContent = String(items.length);
+  elements.coefficientCount.textContent = enabled ? String(items.length) : "0";
+  renderCoefficientSuggestions();
 
   items.forEach((item) => {
     const card = document.createElement("article");
@@ -848,11 +1046,23 @@ function renderCoefficients() {
       coefficientField("Sposób łączenia", combinationSelect)
     );
     card.append(top, grid, coefficientField("Źródło", sourceSelect));
+    if (item.sourceUrl) {
+      const sourceLink = document.createElement("a");
+      sourceLink.className = "coefficient-item-source";
+      sourceLink.href = item.sourceUrl;
+      sourceLink.target = "_blank";
+      sourceLink.rel = "noopener";
+      sourceLink.textContent = `${item.sourceTitle || "Źródło reguły"} ↗`;
+      card.appendChild(sourceLink);
+    }
     elements.coefficientList.appendChild(card);
   });
 }
 
 function factorBreakdown() {
+  if (!coefficientsEnabled()) {
+    return { valid: [], summed: [], multiplied: [], summedFactor: 1, multipliedFactor: 1, combined: 1 };
+  }
   const valid = coefficientItems().map((item) => ({
     ...item,
     value: Number(item.value)
@@ -986,9 +1196,113 @@ function updateConnectionBadge() {
   elements.connectionBadge.classList.toggle("offline", !isOnline);
 }
 
+function formatLegislationDate(value) {
+  if (!value) return "Bez daty na liście";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat("pl-PL", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: String(value).includes("T") ? "2-digit" : undefined,
+    minute: String(value).includes("T") ? "2-digit" : undefined
+  }).format(date);
+}
+
+function renderLegislation() {
+  const query = normalize(elements.legislationSearch.value);
+  const allItems = Array.isArray(legislationData.items) ? legislationData.items : [];
+  const items = allItems.filter((item) => normalize([
+    item.type,
+    item.title,
+    item.summary,
+    item.source
+  ].join(" ")).includes(query));
+  elements.legislationList.replaceChildren();
+  elements.legislationCount.textContent = String(items.length);
+  elements.legislationEmpty.hidden = items.length > 0;
+  elements.legislationUpdatedLabel.textContent = `Ostatnie sprawdzenie źródeł: ${formatLegislationDate(legislationData.meta?.checkedAt)}.`;
+
+  items.forEach((item) => {
+    const link = document.createElement("a");
+    const meta = document.createElement("div");
+    const type = document.createElement("span");
+    const date = document.createElement("time");
+    const title = document.createElement("strong");
+    const summary = document.createElement("p");
+    const source = document.createElement("small");
+    link.className = "legislation-item";
+    link.href = item.url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    meta.className = "legislation-item-meta";
+    type.textContent = item.type || "Legislacja MZ";
+    date.textContent = item.date ? formatLegislationDate(item.date) : "Źródło bieżące";
+    if (item.date) date.dateTime = item.date;
+    title.textContent = item.title;
+    summary.textContent = item.summary || "Przejdź do oficjalnego źródła, aby sprawdzić treść i metrykę dokumentu.";
+    source.textContent = `${item.source || "Oficjalne źródło MZ"} · Otwórz ↗`;
+    meta.append(type, date);
+    link.append(meta, title, summary, source);
+    elements.legislationList.appendChild(link);
+  });
+}
+
+async function refreshLegislation(options = {}) {
+  if (typeof window.fetch !== "function") {
+    renderLegislation();
+    return false;
+  }
+  elements.refreshLegislation.disabled = true;
+  elements.legislationStatus.textContent = "Sprawdzam";
+  try {
+    const separator = LEGISLATION_DATA_URL.includes("?") ? "&" : "?";
+    const response = await window.fetch(`${LEGISLATION_DATA_URL}${separator}v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const nextData = await response.json();
+    if (!nextData || !Array.isArray(nextData.items)) throw new Error("Nieprawidłowy format danych");
+    legislationData = nextData;
+    try {
+      localStorage.setItem(LEGISLATION_CHECK_KEY, String(Date.now()));
+    } catch {
+      // Brak pamięci lokalnej nie blokuje odświeżenia danych.
+    }
+    elements.legislationStatus.textContent = navigator.onLine ? "Aktualne" : "Offline";
+    renderLegislation();
+    return true;
+  } catch {
+    elements.legislationStatus.textContent = navigator.onLine ? "Brak aktualizacji" : "Offline";
+    if (options.userInitiated) {
+      elements.legislationUpdatedLabel.textContent = "Nie udało się pobrać nowego pliku. Pokazuję ostatnio dostępne, oficjalne linki.";
+    }
+    renderLegislation();
+    return false;
+  } finally {
+    elements.refreshLegislation.disabled = false;
+  }
+}
+
+function maybeRefreshLegislation() {
+  let lastCheck = 0;
+  try {
+    lastCheck = Number(localStorage.getItem(LEGISLATION_CHECK_KEY)) || 0;
+  } catch {
+    lastCheck = 0;
+  }
+  if (Date.now() - lastCheck >= LEGISLATION_REFRESH_INTERVAL) {
+    refreshLegislation();
+  } else {
+    renderLegislation();
+  }
+}
+
 elements.openGruper.addEventListener("click", () => {
   showScreen("gruper");
   setSearchMode(state.searchMode);
+});
+elements.openLegislation.addEventListener("click", () => {
+  showScreen("legislation");
+  maybeRefreshLegislation();
 });
 elements.resumeGroup.addEventListener("click", () => {
   showScreen("gruper", { keepResult: true });
@@ -1050,16 +1364,30 @@ elements.pointPrice.addEventListener("input", () => {
   state.customPrice = Math.max(0, Number(elements.pointPrice.value) || 0);
   updateCalculation();
 });
+elements.coefficientEnabled.addEventListener("change", () => {
+  if (!selectedGroup) return;
+  state.coefficientEnabledByGroup[selectedGroup.code] = elements.coefficientEnabled.checked;
+  saveState();
+  renderCoefficients();
+  updateCalculation();
+});
 elements.addCoefficient.addEventListener("click", () => {
   if (!selectedGroup) return;
   const items = coefficientItems();
   const item = newCoefficient();
   state.coefficientsByGroup[selectedGroup.code] = [...items, item];
+  state.coefficientEnabledByGroup[selectedGroup.code] = true;
   saveState();
   renderCoefficients();
   updateCalculation();
   const card = elements.coefficientList.querySelector(`[data-coefficient-id="${item.id}"]`);
   card?.querySelector("input")?.focus();
+});
+elements.coefficientSuggestionList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-add-rule]");
+  if (!button) return;
+  const rule = (COEFFICIENT_REGISTRY.rules || []).find((candidate) => candidate.id === button.dataset.addRule);
+  if (rule) addCoefficientFromRule(rule);
 });
 elements.coefficientList.addEventListener("input", (event) => {
   const card = event.target.closest("[data-coefficient-id]");
@@ -1095,6 +1423,8 @@ elements.installButton.addEventListener("click", () => {
   if (typeof elements.installDialog.showModal === "function") elements.installDialog.showModal();
   else elements.installDialog.setAttribute("open", "");
 });
+elements.refreshLegislation.addEventListener("click", () => refreshLegislation({ userInitiated: true }));
+elements.legislationSearch.addEventListener("input", renderLegislation);
 window.addEventListener("online", updateConnectionBadge);
 window.addEventListener("offline", updateConnectionBadge);
 
@@ -1108,6 +1438,8 @@ elements.sourceApiLabel.textContent = `${CONTRACT_DATA.meta.source || "API Umowy
 elements.sourceApiDate.textContent = formatDate(CONTRACT_DATA.meta.syncedAt);
 
 renderProviderSelector();
+renderCoefficientRegistry();
+renderLegislation();
 setSearchMode(state.searchMode);
 showScreen("home");
 updateConnectionBadge();
