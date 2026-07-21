@@ -2,7 +2,7 @@
   "id": "./index.html",
   "name": "HospitalAPP",
   "short_name": "HospitalAPP",
-  "description": "Mobilne narzędzia analityczne dla szpitala: Gruper JGP, dane umów NFZ i kalkulacja wyceny.",
+  "description": "Mobilne narzędzia dla zarządzających szpitalem: Gruper JGP, wycena i Legislacja MZ.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",
