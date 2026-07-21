@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b6b61">
-  <meta name="description" content="HospitalAPP: mobilny Gruper JGP, dane umów NFZ, wycena i analityka szpitalna.">
+  <meta name="description" content="HospitalAPP: mobilny Gruper JGP, publiczne reguły wyceny, dane umów NFZ i Legislacja MZ.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HospitalAPP">
@@ -96,15 +96,15 @@
             <span class="module-state">Wkrótce</span>
           </button>
 
-          <button class="module-card" type="button" disabled>
+          <button id="open-legislation" class="module-card module-card-legislation" type="button">
             <span class="module-icon module-icon-orange" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 11h6m-6 4h6m-6 4h4"/></svg>
             </span>
             <span class="module-card-copy">
-              <strong>Monitor zmian</strong>
-              <small>NFZ, AOTMiT i Ministerstwo Zdrowia</small>
+              <strong>Legislacja MZ</strong>
+              <small>Projekty i akty ze źródeł Ministerstwa Zdrowia</small>
             </span>
-            <span class="module-state">Wkrótce</span>
+            <span class="module-state module-state-live">Działa</span>
           </button>
         </nav>
 
@@ -330,15 +330,43 @@
               <span id="coefficient-count" class="count-badge">0</span>
             </div>
 
-            <p class="coefficient-intro">Dodaj tyle współczynników, ile rzeczywiście dotyczy świadczenia. Każdy zapisz z jego źródłem i sposobem łączenia.</p>
-            <div id="coefficient-list" class="coefficient-list"></div>
-            <div id="coefficient-empty" class="coefficient-empty">
-              <span aria-hidden="true">×1,00</span>
-              <p>Brak zastosowanych współczynników.</p>
+            <p class="coefficient-intro">Najpierw wskaż, czy w tej kalkulacji stosujesz współczynniki. Publiczne reguły są podpowiadane tylko dla pasujących grup, ale ich warunki musisz potwierdzić.</p>
+
+            <label class="coefficient-toggle">
+              <input id="coefficient-enabled" type="checkbox">
+              <span class="toggle-switch" aria-hidden="true"></span>
+              <span class="coefficient-copy">
+                <strong>Czy stosujesz współczynniki?</strong>
+                <small>Włącz, aby wybrać regułę publiczną albo wpisać własną.</small>
+              </span>
+            </label>
+
+            <div id="coefficient-tools" class="coefficient-tools" hidden>
+              <section class="coefficient-suggestions" aria-labelledby="coefficient-suggestions-title">
+                <div class="coefficient-suggestions-heading">
+                  <div>
+                    <strong id="coefficient-suggestions-title">Możliwe dla tej grupy</strong>
+                    <small>Nie są stosowane automatycznie</small>
+                  </div>
+                  <span id="coefficient-suggestion-count" class="verification-badge">0 reguł</span>
+                </div>
+                <div id="coefficient-suggestion-list" class="coefficient-suggestion-list"></div>
+                <p id="coefficient-suggestion-empty" class="coefficient-suggestion-empty">Brak zweryfikowanej reguły przypisanej do tej grupy. Nadal możesz wpisać współczynnik z własnej umowy.</p>
+              </section>
+
+              <div class="applied-coefficients-heading">
+                <strong>Zastosowane w kalkulacji</strong>
+                <small>Możesz dodać kilka i wskazać sposób łączenia.</small>
+              </div>
+              <div id="coefficient-list" class="coefficient-list"></div>
+              <div id="coefficient-empty" class="coefficient-empty">
+                <span aria-hidden="true">×1,00</span>
+                <p>Brak zastosowanych współczynników.</p>
+              </div>
+              <button id="add-coefficient" class="add-coefficient-button" type="button">
+                <span aria-hidden="true">＋</span> Wpisz własny współczynnik
+              </button>
             </div>
-            <button id="add-coefficient" class="add-coefficient-button" type="button">
-              <span aria-hidden="true">＋</span> Dodaj współczynnik
-            </button>
 
             <details class="coefficient-guide">
               <summary>Jak łączyć współczynniki i skąd je brać?</summary>
@@ -347,6 +375,14 @@
                 <p>Wartość sprawdź w aktualnym zarządzeniu, słowniku SP_ROZ albo aneksie swojej umowy. AOTMiT ustala taryfy, ale nie jest to jedna uniwersalna lista współczynników dla każdego szpitala.</p>
                 <a href="https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/komunikat-dla-swiadczeniodawcow-i-tworcow-oprogramowania%2C8872.html" target="_blank" rel="noopener">Macierz łączenia NFZ z 30.12.2025</a>
                 <a href="https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/nowe-standardy-zywienia-w-szpitalach-i-zmiany-w-wycenach-swiadczen-nfz-wprowadza-rozwiazania-systemowe%2C8896.html" target="_blank" rel="noopener">Korekta standardu żywienia 2026</a>
+              </div>
+            </details>
+
+            <details class="coefficient-registry">
+              <summary>Pełny rejestr publicznych reguł</summary>
+              <div>
+                <p id="coefficient-registry-note" class="reference-source"></p>
+                <div id="coefficient-registry-list" class="coefficient-registry-list"></div>
               </div>
             </details>
 
@@ -424,11 +460,57 @@
           </div>
         </details>
       </section>
+
+      <section id="legislation-screen" class="screen legislation-screen" aria-labelledby="legislation-title" hidden>
+        <section class="legislation-hero">
+          <span class="home-kicker">Wyłącznie Ministerstwo Zdrowia</span>
+          <h2 id="legislation-title">Legislacja MZ</h2>
+          <p>Jedno miejsce do sprawdzania projektów, wykazu prac i oficjalnych aktów. Każda pozycja prowadzi bezpośrednio do źródła.</p>
+        </section>
+
+        <section class="surface-card legislation-status-card" aria-labelledby="legislation-status-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Aktualność danych</p>
+              <h2 id="legislation-status-title">Monitor źródeł MZ</h2>
+            </div>
+            <span id="legislation-status" class="status-badge">Gotowe</span>
+          </div>
+          <p id="legislation-updated-label" class="legislation-updated-label">Ostatnie sprawdzenie: —</p>
+          <button id="refresh-legislation" class="refresh-legislation-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.4 6.4L4 9m16 6-2.4 2.6A7 7 0 0 1 5.5 15"/></svg>
+            Sprawdź aktualizacje
+          </button>
+          <p class="legislation-auto-note">Aplikacja sprawdza plik aktualizacji przy otwarciu, nie częściej niż raz dziennie. Publikowana wersja może być dodatkowo odświeżana automatycznie przez harmonogram GitHub.</p>
+        </section>
+
+        <section class="surface-card legislation-list-card" aria-labelledby="legislation-list-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Oficjalne źródła</p>
+              <h2 id="legislation-list-title">Najnowsze linki</h2>
+            </div>
+            <span id="legislation-count" class="count-badge">0</span>
+          </div>
+          <label class="legislation-search-field">
+            <span class="sr-only">Filtruj legislację</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+            <input id="legislation-search" type="search" placeholder="Filtruj po tytule lub rodzaju…" autocomplete="off">
+          </label>
+          <div id="legislation-list" class="legislation-list"></div>
+          <p id="legislation-empty" class="legislation-empty" hidden>Nie znaleziono pozycji dla wpisanego filtra.</p>
+        </section>
+
+        <aside class="notice legislation-notice">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>HospitalAPP jest monitorem linków, nie systemem informacji prawnej. Wiążąca jest treść dokumentu i metryka na stronie źródłowej.</p>
+        </aside>
+      </section>
     </main>
 
     <footer>
       <span>HospitalAPP</span>
-      <span>v0.5 · wersja robocza</span>
+      <span>v0.6 · wersja robocza</span>
     </footer>
   </div>
 
@@ -469,6 +551,7 @@
   <script src="data/jgp-characteristics-13.js" defer></script>
   <script src="data/jgp-characteristics-14.js" defer></script>
   <script src="data/nfz-contract.js" defer></script>
+  <script src="data/nfz-coefficients.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
