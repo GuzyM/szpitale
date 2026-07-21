@@ -1249,6 +1249,425 @@ footer {
   }
 }
 
+/* HospitalAPP v0.6 · publiczne reguły wyceny i Legislacja MZ */
+
+.module-card-legislation {
+  border-color: #efd7c5;
+  background: linear-gradient(145deg, #fff, #fff8f2);
+}
+
+.module-state-live {
+  color: #075b40;
+  background: #d4f1e4;
+}
+
+.coefficient-tools {
+  display: grid;
+  gap: 12px;
+  margin-top: 11px;
+}
+
+.coefficient-suggestions {
+  padding: 13px;
+  border: 1px solid #c7e1dc;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #f8fcfb, var(--brand-soft));
+}
+
+.coefficient-suggestions-heading,
+.applied-coefficients-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coefficient-suggestions-heading > div,
+.applied-coefficients-heading {
+  min-width: 0;
+}
+
+.coefficient-suggestions-heading strong,
+.applied-coefficients-heading strong {
+  display: block;
+  font-size: 12px;
+}
+
+.coefficient-suggestions-heading small,
+.applied-coefficients-heading small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.coefficient-suggestion-list,
+.coefficient-registry-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.coefficient-suggestion-empty {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.48;
+}
+
+.applied-coefficients-heading {
+  display: block;
+  margin: 2px 2px -3px;
+}
+
+.registry-rule-card {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid rgba(199, 225, 220, 0.92);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.coefficient-registry-list .registry-rule-card {
+  border-color: var(--line);
+  background: var(--surface-alt);
+}
+
+.registry-rule-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: start;
+}
+
+.registry-rule-title {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.registry-rule-title > strong {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.registry-rule-status {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.registry-rule-value {
+  padding: 5px 7px;
+  border-radius: 8px;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.status-contract-dependent .registry-rule-value,
+.status-verify-current .registry-rule-value,
+.status-dynamic-value .registry-rule-value {
+  color: #765022;
+  background: var(--accent-soft);
+}
+
+.registry-rule-condition {
+  margin: 0;
+  color: var(--ink);
+  font-size: 10px;
+  line-height: 1.52;
+}
+
+.registry-variant-select {
+  width: 100%;
+  min-height: 43px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 13px;
+}
+
+.registry-rule-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.coefficient-source-link,
+.coefficient-item-source {
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.coefficient-item-source {
+  padding-top: 2px;
+  border-top: 1px solid var(--line);
+  line-height: 1.4;
+}
+
+.add-registry-rule {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--brand);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.registry-rule-note {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.coefficient-registry {
+  margin-top: 9px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.coefficient-registry > summary {
+  padding: 12px 13px;
+  color: var(--brand-dark);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.coefficient-registry > div {
+  padding: 0 13px 13px;
+  border-top: 1px solid var(--line);
+}
+
+.coefficient-registry .reference-source {
+  margin-bottom: 0;
+}
+
+.legislation-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.legislation-hero {
+  position: relative;
+  min-height: 205px;
+  padding: 24px 22px;
+  overflow: hidden;
+  border-radius: 28px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 95% 5%, rgba(255, 255, 255, 0.2), transparent 28%),
+    linear-gradient(145deg, #714124, #a45c2c 60%, #bf733e);
+  box-shadow: 0 22px 55px rgba(113, 65, 36, 0.2);
+}
+
+.legislation-hero::after {
+  content: "§";
+  position: absolute;
+  right: 13px;
+  bottom: -48px;
+  color: rgba(255, 255, 255, 0.1);
+  font-family: Georgia, serif;
+  font-size: 190px;
+  line-height: 1;
+}
+
+.legislation-hero h2 {
+  position: relative;
+  z-index: 1;
+  margin: 28px 0 8px;
+  font-size: clamp(31px, 9vw, 44px);
+  letter-spacing: -0.045em;
+}
+
+.legislation-hero p {
+  position: relative;
+  z-index: 1;
+  max-width: 510px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.79);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.legislation-status-card,
+.legislation-list-card {
+  padding: 19px;
+}
+
+.legislation-updated-label,
+.legislation-auto-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.48;
+}
+
+.refresh-legislation-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin: 12px 0 9px;
+  border: 1px solid var(--brand);
+  border-radius: 14px;
+  color: var(--brand-dark);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.refresh-legislation-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.refresh-legislation-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.legislation-search-field {
+  position: relative;
+  display: block;
+  margin: 7px 0 13px;
+}
+
+.legislation-search-field svg {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  transform: translateY(-50%);
+}
+
+.legislation-search-field input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px 0 41px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: var(--ink);
+  background: var(--surface-alt);
+  outline: none;
+  font-size: 16px;
+}
+
+.legislation-search-field input:focus {
+  border-color: var(--brand);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(11, 107, 97, 0.11);
+}
+
+.legislation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.legislation-item {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  background: #fff;
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.legislation-item:active {
+  transform: scale(0.985);
+}
+
+.legislation-item:hover {
+  border-color: #b9dcd6;
+}
+
+.legislation-item-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.legislation-item-meta span {
+  padding: 4px 6px;
+  border-radius: 7px;
+  color: #8b4d24;
+  background: #fff0e3;
+  font-weight: 800;
+}
+
+.legislation-item-meta time {
+  padding: 4px 0;
+}
+
+.legislation-item > strong {
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.legislation-item > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.legislation-item > small {
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.legislation-empty {
+  margin: 8px 0 0;
+  padding: 13px;
+  border: 1px dashed var(--line);
+  border-radius: 13px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 11px;
+}
+
+@media (max-width: 540px) {
+  .registry-rule-footer {
+    align-items: stretch;
+  }
+
+  .add-registry-rule {
+    width: 100%;
+  }
+
+  .legislation-status-card,
+  .legislation-list-card {
+    padding: 17px;
+  }
+}
+
 @media (display-mode: standalone) {
   .topbar {
     margin-top: 3px;
