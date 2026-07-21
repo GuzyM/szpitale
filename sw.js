@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "hospitalapp-v0.5.0";
+const CACHE_NAME = "hospitalapp-v0.6.0";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -26,6 +26,8 @@ const APP_SHELL = [
   "./data/jgp-characteristics-13.js",
   "./data/jgp-characteristics-14.js",
   "./data/nfz-contract.js",
+  "./data/nfz-coefficients.js",
+  "./data/mz-legislation.json",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
@@ -50,6 +52,20 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.endsWith("/data/mz-legislation.json")) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" }).then((response) => {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("./data/mz-legislation.json", copy));
+        }
+        return response;
+      }).catch(() => caches.match("./data/mz-legislation.json"))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
