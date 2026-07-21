@@ -1,11 +1,12 @@
 {
   "name": "hospitalapp-pwa",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Mobilny katalog i kalkulator JGP z danymi NFZ.",
   "scripts": {
     "test": "node --test",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080",
+    "sync:legislation": "python3 scripts/sync_mz_legislation.py"
   },
   "devDependencies": {
     "jsdom": "^26.1.0"
