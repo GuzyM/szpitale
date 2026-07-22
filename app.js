@@ -1226,23 +1226,34 @@ function renderLegislation() {
   items.forEach((item) => {
     const link = document.createElement("a");
     const meta = document.createElement("div");
+    const metaLeading = document.createElement("div");
     const type = document.createElement("span");
     const date = document.createElement("time");
     const title = document.createElement("strong");
     const summary = document.createElement("p");
     const source = document.createElement("small");
     link.className = "legislation-item";
+    link.classList.toggle("is-new", Boolean(item.isNew));
     link.href = item.url;
     link.target = "_blank";
     link.rel = "noopener";
     meta.className = "legislation-item-meta";
+    metaLeading.className = "legislation-item-meta-leading";
     type.textContent = item.type || "Legislacja MZ";
+    metaLeading.appendChild(type);
+    if (item.isNew) {
+      const newBadge = document.createElement("b");
+      newBadge.className = "legislation-new-badge";
+      newBadge.textContent = "Nowe";
+      metaLeading.appendChild(newBadge);
+    }
     date.textContent = item.date ? formatLegislationDate(item.date) : "Źródło bieżące";
     if (item.date) date.dateTime = item.date;
     title.textContent = item.title;
-    summary.textContent = item.summary || "Przejdź do oficjalnego źródła, aby sprawdzić treść i metrykę dokumentu.";
-    source.textContent = `${item.source || "Oficjalne źródło MZ"} · Otwórz ↗`;
-    meta.append(type, date);
+    summary.textContent = item.summary || "Streszczenie oczekuje na przygotowanie. Otwórz oficjalne źródło, aby sprawdzić treść projektu.";
+    const summaryStatus = item.summaryProvider === "openai" ? "5 zdań AI" : "streszczenie w przygotowaniu";
+    source.textContent = `${item.source || "Oficjalne źródło MZ"} · ${summaryStatus} · Otwórz źródło ↗`;
+    meta.append(metaLeading, date);
     link.append(meta, title, summary, source);
     elements.legislationList.appendChild(link);
   });
