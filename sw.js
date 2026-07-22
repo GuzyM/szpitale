@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "hospitalapp-v0.6.0";
+const CACHE_NAME = "hospitalapp-v0.7.0";
 const APP_SHELL = [
   "./",
   "./index.html",
