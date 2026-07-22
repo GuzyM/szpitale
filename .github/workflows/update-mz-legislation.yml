@@ -4,9 +4,17 @@ on:
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - "scripts/sync_mz_legislation.py"
+      - ".github/workflows/update-mz-legislation.yml"
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-mz-legislation
+  cancel-in-progress: false
 
 jobs:
   update:
