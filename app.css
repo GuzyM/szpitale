@@ -1605,6 +1605,30 @@ footer {
   border-color: #b9dcd6;
 }
 
+.legislation-item.is-new {
+  border-color: #f0b785;
+  background: linear-gradient(145deg, #fffaf5, #fff);
+  box-shadow: 0 8px 22px rgba(184, 91, 24, 0.08);
+}
+
+.legislation-item-meta-leading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.legislation-new-badge {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #fff;
+  background: #d95f13;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
 .legislation-item-meta {
   display: flex;
   justify-content: space-between;
