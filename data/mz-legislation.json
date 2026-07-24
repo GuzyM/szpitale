@@ -2,38 +2,31 @@
   "meta": {
     "title": "Legislacja Ministerstwa Zdrowia",
     "checkedAt": "2026-07-21T00:00:00+02:00",
-    "sourceStatus": "official-links",
+    "sourceStatus": "awaiting-first-project-sync",
     "sourceUrl": "https://legislacja.gov.pl/lista?_typeId=1&title=&createDateFrom=&createDateTo=&applicantId=1&number=&_isUEAct=on&_isTKAct=on&_isActEstablishingNumber=on&_isSeparateMode=on&_isDU=on&_isNumerSejm=on#list",
     "sourceLabel": "Rządowy Proces Legislacyjny · wnioskodawca: Ministerstwo Zdrowia",
-    "note": "Lista obejmuje wyłącznie oficjalne źródła Ministerstwa Zdrowia."
+    "projectCount": 0,
+    "newSincePreviousCheck": 0,
+    "updatedSincePreviousCheck": 0,
+    "summaryMode": "chatgpt-manual",
+    "note": "Rejestr zachowuje każdy wykryty projekt. GitHub zapisuje metrykę i link, bez załączników i bez OpenAI API."
   },
-  "items": [
+  "items": [],
+  "resources": [
     {
       "id": "rcl-mz-projects",
-      "type": "Projekty aktów prawnych",
-      "title": "Bieżące projekty Ministerstwa Zdrowia w Rządowym Procesie Legislacyjnym",
-      "summary": "Lista odfiltrowana po wnioskodawcy: Ministerstwo Zdrowia. Na stronie źródłowej dostępny jest aktualny przebieg, dokumenty i daty projektu.",
-      "date": null,
-      "url": "https://legislacja.gov.pl/lista?_typeId=1&title=&createDateFrom=&createDateTo=&applicantId=1&number=&_isUEAct=on&_isTKAct=on&_isActEstablishingNumber=on&_isSeparateMode=on&_isDU=on&_isNumerSejm=on#list",
-      "source": "legislacja.gov.pl"
+      "title": "Projekty Ministerstwa Zdrowia w Rządowym Procesie Legislacyjnym",
+      "url": "https://legislacja.gov.pl/lista?_typeId=1&title=&createDateFrom=&createDateTo=&applicantId=1&number=&_isUEAct=on&_isTKAct=on&_isActEstablishingNumber=on&_isSeparateMode=on&_isDU=on&_isNumerSejm=on#list"
     },
     {
       "id": "mz-work-register",
-      "type": "Wykaz prac MZ",
       "title": "Wykaz prac legislacyjnych Ministra Zdrowia",
-      "summary": "Oficjalny program prac legislacyjnych dotyczący projektów rozporządzeń pozostających we właściwości Ministra Zdrowia.",
-      "date": "2026-07-07",
-      "url": "https://www.gov.pl/web/zdrowie/wykaz-prac-legislacyjnych",
-      "source": "gov.pl/zdrowie"
+      "url": "https://www.gov.pl/web/zdrowie/wykaz-prac-legislacyjnych"
     },
     {
       "id": "mz-legislation-hub",
-      "type": "Legislacja MZ",
       "title": "Centrum legislacji Ministerstwa Zdrowia",
-      "summary": "Dostęp do projektów, aktów prawnych, Dziennika Urzędowego MZ i objaśnień prawnych.",
-      "date": null,
-      "url": "https://www.gov.pl/web/zdrowie/legislacja",
-      "source": "gov.pl/zdrowie"
+      "url": "https://www.gov.pl/web/zdrowie/legislacja"
     }
   ]
 }
