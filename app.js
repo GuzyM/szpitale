@@ -11,6 +11,7 @@ const GROUP_BY_CODE = new Map(GROUPS.map((group) => [group.code, group]));
 const STORAGE_KEY = "hospitalapp-jgp-v06";
 const PREVIOUS_STORAGE_KEYS = ["hospitalapp-jgp-v05", "hospitalapp-jgp-v04", "jgp-calculator-v03"];
 const LEGISLATION_CHECK_KEY = "hospitalapp-mz-legislation-last-check";
+const LEGISLATION_PREFERENCES_KEY = "hospitalapp-mz-legislation-preferences-v1";
 const LEGISLATION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000;
 const LEGISLATION_DATA_URL = "./data/mz-legislation.json";
 const MODE_LABELS = {
@@ -81,6 +82,7 @@ let legislationData = {
   },
   items: []
 };
+let legislationPreferences = loadLegislationPreferences();
 
 const elements = {
   homeScreen: document.querySelector("#home-screen"),
@@ -179,8 +181,12 @@ const elements = {
   legislationUpdatedLabel: document.querySelector("#legislation-updated-label"),
   refreshLegislation: document.querySelector("#refresh-legislation"),
   legislationSearch: document.querySelector("#legislation-search"),
+  legislationFilterNew: document.querySelector("#legislation-filter-new"),
+  legislationFilterSummary: document.querySelector("#legislation-filter-summary"),
   legislationList: document.querySelector("#legislation-list"),
   legislationCount: document.querySelector("#legislation-count"),
+  legislationTotalCount: document.querySelector("#legislation-total-count"),
+  legislationNewCount: document.querySelector("#legislation-new-count"),
   legislationEmpty: document.querySelector("#legislation-empty")
 };
 
@@ -261,6 +267,23 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // Aplikacja pozostaje funkcjonalna również przy wyłączonym localStorage.
+  }
+}
+
+function loadLegislationPreferences() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LEGISLATION_PREFERENCES_KEY) || "{}");
+    return saved && typeof saved === "object" ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLegislationPreferences() {
+  try {
+    localStorage.setItem(LEGISLATION_PREFERENCES_KEY, JSON.stringify(legislationPreferences));
+  } catch {
+    // Prywatne oznaczenia są opcjonalne i nie blokują monitora legislacji.
   }
 }
 
@@ -1209,53 +1232,138 @@ function formatLegislationDate(value) {
   }).format(date);
 }
 
+function isLegislationProject(item) {
+  if (!item || !item.id) return false;
+  if (/^rcl-\d+$/.test(item.id)) return true;
+  return item.id !== "rcl-mz-projects" && normalize(item.type).includes("PROJEKT");
+}
+
+function hasReadyLegislationSummary(item) {
+  return item?.summaryStatus === "ready" && Boolean(String(item.summary || "").trim());
+}
+
+function legislationPreference(itemId) {
+  return {
+    important: false,
+    read: false,
+    notRelevant: false,
+    ...(legislationPreferences[itemId] || {})
+  };
+}
+
+function setLegislationPreference(itemId, key) {
+  const next = legislationPreference(itemId);
+  next[key] = !next[key];
+  legislationPreferences[itemId] = next;
+  saveLegislationPreferences();
+  renderLegislation();
+}
+
+function legislationActionButton(itemId, key, label, active) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "legislation-user-action";
+  button.dataset.legislationId = itemId;
+  button.dataset.legislationAction = key;
+  button.setAttribute("aria-pressed", String(active));
+  button.textContent = label;
+  return button;
+}
+
 function renderLegislation() {
   const query = normalize(elements.legislationSearch.value);
-  const allItems = Array.isArray(legislationData.items) ? legislationData.items : [];
-  const items = allItems.filter((item) => normalize([
-    item.type,
-    item.title,
-    item.summary,
-    item.source
-  ].join(" ")).includes(query));
+  const allItems = (Array.isArray(legislationData.items) ? legislationData.items : [])
+    .filter(isLegislationProject);
+  const onlyNew = Boolean(elements.legislationFilterNew?.checked);
+  const onlyWithSummary = Boolean(elements.legislationFilterSummary?.checked);
+  const items = allItems.filter((item) => {
+    if (onlyNew && !item.isNew) return false;
+    if (onlyWithSummary && !hasReadyLegislationSummary(item)) return false;
+    return normalize([
+      item.type,
+      item.title,
+      item.summary,
+      item.shortStatus,
+      item.source
+    ].join(" ")).includes(query);
+  });
   elements.legislationList.replaceChildren();
-  elements.legislationCount.textContent = String(items.length);
+  elements.legislationCount.textContent = items.length === allItems.length
+    ? String(items.length)
+    : `${items.length} z ${allItems.length}`;
   elements.legislationEmpty.hidden = items.length > 0;
-  elements.legislationUpdatedLabel.textContent = `Ostatnie sprawdzenie źródeł: ${formatLegislationDate(legislationData.meta?.checkedAt)}.`;
+  elements.legislationUpdatedLabel.textContent = formatLegislationDate(legislationData.meta?.checkedAt);
+  elements.legislationTotalCount.textContent = String(
+    Number(legislationData.meta?.projectCount) || allItems.length
+  );
+  elements.legislationNewCount.textContent = String(
+    Number(legislationData.meta?.newSincePreviousCheck) || 0
+  );
 
   items.forEach((item) => {
-    const link = document.createElement("a");
+    const card = document.createElement("article");
     const meta = document.createElement("div");
     const metaLeading = document.createElement("div");
     const type = document.createElement("span");
     const date = document.createElement("time");
-    const title = document.createElement("strong");
+    const title = document.createElement("h3");
+    const statusRow = document.createElement("div");
+    const shortStatus = document.createElement("span");
+    const summaryBox = document.createElement("section");
+    const summaryLabel = document.createElement("strong");
     const summary = document.createElement("p");
-    const source = document.createElement("small");
-    link.className = "legislation-item";
-    link.classList.toggle("is-new", Boolean(item.isNew));
-    link.href = item.url;
-    link.target = "_blank";
-    link.rel = "noopener";
+    const footer = document.createElement("div");
+    const source = document.createElement("a");
+    const actions = document.createElement("div");
+    const preferences = legislationPreference(item.id);
+    const summaryReady = hasReadyLegislationSummary(item);
+    const primaryDate = item.dateLabel === "Aktualizacja" && item.updatedAt
+      ? item.updatedAt
+      : item.publicationDate || item.date || item.firstSeenAt;
+    card.className = "legislation-item";
+    card.classList.toggle("is-new", Boolean(item.isNew));
+    card.classList.toggle("is-read", preferences.read);
+    card.classList.toggle("is-not-relevant", preferences.notRelevant);
+    card.classList.toggle("is-important", preferences.important);
     meta.className = "legislation-item-meta";
     metaLeading.className = "legislation-item-meta-leading";
-    type.textContent = item.type || "Legislacja MZ";
+    type.textContent = item.type || "Projekt aktu prawnego";
     metaLeading.appendChild(type);
     if (item.isNew) {
       const newBadge = document.createElement("b");
       newBadge.className = "legislation-new-badge";
-      newBadge.textContent = "Nowe";
+      newBadge.textContent = "NOWE";
       metaLeading.appendChild(newBadge);
     }
-    date.textContent = item.date ? formatLegislationDate(item.date) : "Źródło bieżące";
-    if (item.date) date.dateTime = item.date;
+    date.textContent = `${item.dateLabel || "Publikacja"}: ${formatLegislationDate(primaryDate)}`;
+    if (primaryDate) date.dateTime = primaryDate;
     title.textContent = item.title;
-    summary.textContent = item.summary || "Streszczenie oczekuje na przygotowanie. Otwórz oficjalne źródło, aby sprawdzić treść projektu.";
-    const summaryStatus = item.summaryProvider === "openai" ? "5 zdań AI" : "streszczenie w przygotowaniu";
-    source.textContent = `${item.source || "Oficjalne źródło MZ"} · ${summaryStatus} · Otwórz źródło ↗`;
+    statusRow.className = "legislation-status-row";
+    shortStatus.className = "legislation-short-status";
+    shortStatus.textContent = item.shortStatus || (item.isNew ? "Nowy projekt" : "W toku");
+    statusRow.appendChild(shortStatus);
+    summaryBox.className = `legislation-summary ${summaryReady ? "is-ready" : "is-pending"}`;
+    summaryLabel.textContent = summaryReady ? "Podsumowanie · gotowe 5 zdań" : "Podsumowanie w przygotowaniu";
+    summary.textContent = summaryReady
+      ? item.summary
+      : "Streszczenie nie zostało jeszcze przygotowane. Pełna i wiążąca treść jest dostępna w oficjalnym źródle.";
+    summaryBox.append(summaryLabel, summary);
+    footer.className = "legislation-item-footer";
+    source.className = "legislation-source-button";
+    source.href = item.url;
+    source.target = "_blank";
+    source.rel = "noopener";
+    source.textContent = "Zobacz źródło ↗";
+    actions.className = "legislation-user-actions";
+    actions.append(
+      legislationActionButton(item.id, "important", "Ważne", preferences.important),
+      legislationActionButton(item.id, "read", "Przeczytane", preferences.read),
+      legislationActionButton(item.id, "notRelevant", "Nie dotyczy mojego szpitala", preferences.notRelevant)
+    );
+    footer.append(source, actions);
     meta.append(metaLeading, date);
-    link.append(meta, title, summary, source);
-    elements.legislationList.appendChild(link);
+    card.append(meta, title, statusRow, summaryBox, footer);
+    elements.legislationList.appendChild(card);
   });
 }
 
@@ -1436,6 +1544,13 @@ elements.installButton.addEventListener("click", () => {
 });
 elements.refreshLegislation.addEventListener("click", () => refreshLegislation({ userInitiated: true }));
 elements.legislationSearch.addEventListener("input", renderLegislation);
+elements.legislationFilterNew.addEventListener("change", renderLegislation);
+elements.legislationFilterSummary.addEventListener("change", renderLegislation);
+elements.legislationList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-legislation-action]");
+  if (!button || !elements.legislationList.contains(button)) return;
+  setLegislationPreference(button.dataset.legislationId, button.dataset.legislationAction);
+});
 window.addEventListener("online", updateConnectionBadge);
 window.addEventListener("offline", updateConnectionBadge);
 
