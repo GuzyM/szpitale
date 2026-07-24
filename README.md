@@ -1,8 +1,8 @@
 # HospitalAPP
 
-HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 0.6 zawiera mobilny Gruper JGP oraz moduł Legislacja MZ.
+HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 0.8 zawiera mobilny Gruper JGP oraz trwały rejestr Legislacji MZ.
 
-## Zakres wersji 0.6
+## Zakres wersji 0.8
 
 - osobna strona główna z modułami HospitalAPP,
 - wyszukiwanie w odrębnych trybach: grupa JGP, rozpoznanie ICD-10 i procedura ICD-9,
@@ -16,8 +16,12 @@ HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. We
 - rejestr publicznych reguł współczynników z warunkami, statusem weryfikacji i linkiem do źródła,
 - podpowiedzi współczynników ograniczone do pasujących grup; żadna reguła nie jest stosowana automatycznie,
 - dowolna liczba współczynników w jednej kalkulacji, z obsługą sumowania NFZ i mnożenia,
-- aktywny kafelek Legislacja MZ z oficjalnymi linkami i ręcznym odświeżaniem,
-- codzienne sprawdzanie źródła legislacja.gov.pl przez GitHub Actions,
+- aktywny kafelek Legislacja MZ z trwałą historią projektów i bezpośrednimi linkami do źródeł,
+- tytuł, data publikacji lub aktualizacji, typ aktu, krótki status i oznaczenie „NOWE” dla każdego projektu,
+- status ostatniej aktualizacji, liczba wszystkich projektów i liczba nowych pozycji,
+- filtry „Tylko nowe” oraz „Tylko ze streszczeniem”,
+- prywatne oznaczenia „Ważne”, „Przeczytane” i „Nie dotyczy mojego szpitala” zapisywane lokalnie,
+- codzienne sprawdzanie źródła legislacja.gov.pl przez GitHub Actions bez OpenAI API,
 - działanie offline po pierwszym pełnym uruchomieniu,
 - zapisywanie ustawień i kalkulacji wyłącznie w pamięci urządzenia.
 
@@ -82,7 +86,9 @@ Plik `data/mz-legislation.json` można sprawdzić ręcznie poleceniem:
 npm run sync:legislation
 ```
 
-Workflow `.github/workflows/update-mz-legislation.yml` uruchamia to samo zadanie codziennie i zapisuje zmianę tylko w pliku danych. Jeżeli strona źródłowa nie udostępni kart projektów w HTML, skrypt zachowuje ostatnią poprawną listę i odświeża status oficjalnych źródeł zamiast kasować dane.
+Workflow `.github/workflows/update-mz-legislation.yml` uruchamia to samo zadanie codziennie i zapisuje zmianę tylko w pliku danych. Skrypt scala nowe pozycje z dotychczasowym rejestrem, dlatego raz wykryty projekt nie znika z aplikacji. Do repozytorium trafiają wyłącznie tytuł, metryka i link do projektu — bez treści załączników. Gdy RCL zwróci zero projektów, zadanie kończy się błędem i nie nadpisuje ostatniego poprawnego rejestru.
+
+Pięciozdaniowe streszczenia mają osobny status `pending` albo `ready`. GitHub Actions nie wysyła dokumentów do OpenAI API; gotowe streszczenia mogą zostać uzupełnione w kontrolowanym procesie pracy z ChatGPT.
 
 ## Testy
 
