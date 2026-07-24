@@ -8,7 +8,7 @@ const { JSDOM } = require("jsdom");
 
 const ROOT = path.resolve(__dirname, "..");
 
-function createApp() {
+function createApp(legislationOverride = null) {
   const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8")
     .replace(/\s*<script src="data\/jgp-data-[^"]+\.js" defer><\/script>/g, "")
     .replace(/\s*<script src="data\/jgp-characteristics-[^"]+\.js" defer><\/script>/g, "")
@@ -28,7 +28,8 @@ function createApp() {
       return a.localeCompare(b);
     });
   const script = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
-  const legislation = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "mz-legislation.json"), "utf8"));
+  const legislation = legislationOverride
+    || JSON.parse(fs.readFileSync(path.join(ROOT, "data", "mz-legislation.json"), "utf8"));
   const dom = new JSDOM(html, {
     runScripts: "dangerously",
     url: "https://example.test/"
@@ -47,6 +48,44 @@ function createApp() {
   });
   dom.window.eval(script);
   return dom;
+}
+
+function legislationFixture() {
+  return {
+    meta: {
+      checkedAt: "2026-07-23T04:17:00+00:00",
+      projectCount: 2,
+      newSincePreviousCheck: 1
+    },
+    items: [
+      {
+        id: "rcl-1001",
+        type: "Projekt rozporządzenia Ministra Zdrowia",
+        title: "Projekt rozporządzenia w sprawie pilotażu",
+        publicationDate: "2026-07-23",
+        dateLabel: "Publikacja",
+        shortStatus: "Nowy projekt",
+        isNew: true,
+        summaryStatus: "ready",
+        summary: "Zdanie pierwsze. Zdanie drugie. Zdanie trzecie. Zdanie czwarte. Zdanie piąte.",
+        source: "Rządowy Proces Legislacyjny",
+        url: "https://legislacja.gov.pl/projekt/1001"
+      },
+      {
+        id: "rcl-1000",
+        type: "Projekt ustawy",
+        title: "Projekt ustawy o jakości",
+        publicationDate: "2026-07-22",
+        dateLabel: "Publikacja",
+        shortStatus: "W toku",
+        isNew: false,
+        summaryStatus: "pending",
+        summary: null,
+        source: "Rządowy Proces Legislacyjny",
+        url: "https://legislacja.gov.pl/projekt/1000"
+      }
+    ]
+  };
 }
 
 function input(window, element) {
@@ -277,8 +316,8 @@ test("a group without mapped public rules does not inherit obstetric suggestions
   assert.doesNotMatch(document.querySelector("#coefficient-suggestions-title").parentElement.parentElement.textContent, /N20/);
 });
 
-test("Legislacja MZ opens as a separate module and refreshes official links", async () => {
-  const dom = createApp();
+test("Legislacja MZ opens as a persistent project register with full metadata", async () => {
+  const dom = createApp(legislationFixture());
   const { document } = dom.window;
   document.querySelector("#open-legislation").click();
   await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
@@ -286,14 +325,54 @@ test("Legislacja MZ opens as a separate module and refreshes official links", as
   assert.equal(document.querySelector("#home-screen").hidden, true);
   assert.equal(document.querySelector("#gruper-screen").hidden, true);
   assert.equal(document.querySelector("#legislation-screen").hidden, false);
-  assert.equal(document.querySelectorAll("#legislation-list .legislation-item").length, 3);
-  assert.match(document.querySelector("#legislation-list").textContent, /Rządowym Procesie Legislacyjnym/);
+  assert.equal(document.querySelectorAll("#legislation-list .legislation-item").length, 2);
+  assert.equal(document.querySelector("#legislation-total-count").textContent, "2");
+  assert.equal(document.querySelector("#legislation-new-count").textContent, "1");
+  assert.match(document.querySelector("#legislation-list").textContent, /NOWE/);
+  assert.match(document.querySelector("#legislation-list").textContent, /Podsumowanie · gotowe 5 zdań/);
+  assert.match(document.querySelector("#legislation-list").textContent, /Podsumowanie w przygotowaniu/);
   assert.equal(
-    Array.from(document.querySelectorAll("#legislation-list a")).every((link) => (
-      link.hostname === "legislacja.gov.pl" || link.hostname === "www.gov.pl"
-    )),
+    Array.from(document.querySelectorAll("#legislation-list .legislation-source-button"))
+      .every((link) => link.hostname === "legislacja.gov.pl"),
     true
   );
+});
+
+test("legislation filters show only new projects or projects with a ready summary", async () => {
+  const dom = createApp(legislationFixture());
+  const { document } = dom.window;
+  document.querySelector("#open-legislation").click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+
+  const onlySummary = document.querySelector("#legislation-filter-summary");
+  onlySummary.checked = true;
+  change(dom.window, onlySummary);
+  assert.equal(document.querySelectorAll("#legislation-list .legislation-item").length, 1);
+  assert.match(document.querySelector("#legislation-count").textContent, /1 z 2/);
+
+  onlySummary.checked = false;
+  change(dom.window, onlySummary);
+  const onlyNew = document.querySelector("#legislation-filter-new");
+  onlyNew.checked = true;
+  change(dom.window, onlyNew);
+  assert.equal(document.querySelectorAll("#legislation-list .legislation-item").length, 1);
+  assert.match(document.querySelector("#legislation-list").textContent, /Nowy projekt/);
+});
+
+test("legislation user labels are private and saved on the device", async () => {
+  const dom = createApp(legislationFixture());
+  const { document } = dom.window;
+  document.querySelector("#open-legislation").click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+
+  const important = document.querySelector('[data-legislation-id="rcl-1001"][data-legislation-action="important"]');
+  important.click();
+  assert.equal(
+    document.querySelector(".legislation-item.is-important") !== null,
+    true
+  );
+  const saved = JSON.parse(dom.window.localStorage.getItem("hospitalapp-mz-legislation-preferences-v1"));
+  assert.equal(saved["rcl-1001"].important, true);
 });
 
 test("coefficients can be removed and remain isolated to their JGP group", () => {
