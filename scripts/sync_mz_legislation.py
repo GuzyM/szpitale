@@ -32,6 +32,23 @@ MAX_PROJECTS_PER_RUN = 250
 MAX_PAGE_BYTES = 4 * 1024 * 1024
 
 
+def transport_url(url: str) -> str:
+    """Używa oficjalnej domeny technicznej RCL, zachowując link kanoniczny w danych."""
+    parsed = urlparse(url)
+    if parsed.netloc.lower() != "legislacja.gov.pl":
+        return url
+    return urlunparse(
+        (
+            parsed.scheme,
+            "legislacja.rcl.gov.pl",
+            parsed.path,
+            parsed.params,
+            parsed.query,
+            parsed.fragment,
+        )
+    )
+
+
 class LinkParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -61,6 +78,7 @@ class LinkParser(HTMLParser):
 
 
 def request_text(url: str, timeout: int) -> str:
+    download_url = transport_url(url)
     command = [
         "curl",
         "--location",
@@ -83,7 +101,7 @@ def request_text(url: str, timeout: int) -> str:
         USER_AGENT,
         "--header",
         "Accept: text/html,application/xhtml+xml,application/json",
-        url,
+        download_url,
     ]
     try:
         result = subprocess.run(
@@ -94,7 +112,7 @@ def request_text(url: str, timeout: int) -> str:
         )
     except FileNotFoundError:
         request = Request(
-            url,
+            download_url,
             headers={
                 "User-Agent": USER_AGENT,
                 "Accept": "text/html,application/xhtml+xml,application/json",
