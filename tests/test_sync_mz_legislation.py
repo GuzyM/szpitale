@@ -12,6 +12,16 @@ SPEC.loader.exec_module(MODULE)
 
 
 class LegislationSyncTests(unittest.TestCase):
+    def test_transport_uses_official_rcl_host_without_changing_public_links(self):
+        self.assertEqual(
+            MODULE.transport_url("https://legislacja.gov.pl/projekt/12345"),
+            "https://legislacja.rcl.gov.pl/projekt/12345",
+        )
+        self.assertEqual(
+            MODULE.normalize_project_url("/projekt/12345"),
+            "https://legislacja.gov.pl/projekt/12345",
+        )
+
     def test_extracts_anchor_and_embedded_project_urls(self):
         html = """
         <a href="/projekt/12345">Projekt ustawy o jakości</a>
