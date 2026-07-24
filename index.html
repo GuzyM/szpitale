@@ -465,7 +465,7 @@
         <section class="legislation-hero">
           <span class="home-kicker">Wyłącznie Ministerstwo Zdrowia</span>
           <h2 id="legislation-title">Legislacja MZ</h2>
-          <p>Nowe projekty MZ z oficjalnym źródłem i pięciozdaniowym streszczeniem. Pozycje wykryte dzisiaj są wyraźnie oznaczone.</p>
+          <p>Pełny, rosnący rejestr projektów MZ. Każdy wykryty projekt pozostaje w aplikacji i prowadzi bezpośrednio do oficjalnego źródła.</p>
         </section>
 
         <section class="surface-card legislation-status-card" aria-labelledby="legislation-status-title">
@@ -476,19 +476,32 @@
             </div>
             <span id="legislation-status" class="status-badge">Gotowe</span>
           </div>
-          <p id="legislation-updated-label" class="legislation-updated-label">Ostatnie sprawdzenie: —</p>
+          <dl class="legislation-update-stats">
+            <div>
+              <dt>Ostatnia aktualizacja</dt>
+              <dd id="legislation-updated-label">—</dd>
+            </div>
+            <div>
+              <dt>Znaleziono</dt>
+              <dd><strong id="legislation-total-count">0</strong> projektów</dd>
+            </div>
+            <div>
+              <dt>Nowe od poprzedniego sprawdzenia</dt>
+              <dd id="legislation-new-count">0</dd>
+            </div>
+          </dl>
           <button id="refresh-legislation" class="refresh-legislation-button" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.4 6.4L4 9m16 6-2.4 2.6A7 7 0 0 1 5.5 15"/></svg>
-            Sprawdź aktualizacje
+            Pobierz najnowszą listę
           </button>
-          <p class="legislation-auto-note">Aplikacja sprawdza plik aktualizacji przy otwarciu, nie częściej niż raz dziennie. Publikowana wersja może być dodatkowo odświeżana automatycznie przez harmonogram GitHub.</p>
+          <p class="legislation-auto-note">GitHub sprawdza Rządowy Proces Legislacyjny codziennie o 06:17. Przycisk pobiera najnowszy zapisany rejestr; nie zużywa tokenów ChatGPT.</p>
         </section>
 
         <section class="surface-card legislation-list-card" aria-labelledby="legislation-list-title">
           <div class="section-heading compact">
             <div>
-              <p class="eyebrow">Oficjalne źródła</p>
-              <h2 id="legislation-list-title">Najnowsze linki</h2>
+              <p class="eyebrow">Oficjalne źródła MZ</p>
+              <h2 id="legislation-list-title">Pełny rejestr</h2>
             </div>
             <span id="legislation-count" class="count-badge">0</span>
           </div>
@@ -497,8 +510,19 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
             <input id="legislation-search" type="search" placeholder="Filtruj po tytule lub rodzaju…" autocomplete="off">
           </label>
+          <div class="legislation-filters" aria-label="Filtry legislacji">
+            <label>
+              <input id="legislation-filter-new" type="checkbox">
+              <span>Tylko nowe</span>
+            </label>
+            <label>
+              <input id="legislation-filter-summary" type="checkbox">
+              <span>Tylko ze streszczeniem</span>
+            </label>
+          </div>
           <div id="legislation-list" class="legislation-list"></div>
           <p id="legislation-empty" class="legislation-empty" hidden>Nie znaleziono pozycji dla wpisanego filtra.</p>
+          <p class="legislation-local-note">Oznaczenia „Ważne”, „Przeczytane” i „Nie dotyczy mojego szpitala” są prywatne i pozostają na tym urządzeniu.</p>
         </section>
 
         <aside class="notice legislation-notice">
@@ -510,7 +534,7 @@
 
     <footer>
       <span>HospitalAPP</span>
-      <span>v0.7 · wersja robocza</span>
+      <span>v0.8 · wersja robocza</span>
     </footer>
   </div>
 
