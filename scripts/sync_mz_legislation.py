@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from html import unescape
@@ -60,28 +61,58 @@ class LinkParser(HTMLParser):
 
 
 def request_text(url: str, timeout: int) -> str:
-    request = Request(
+    command = [
+        "curl",
+        "--location",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--ipv4",
+        "--retry",
+        "3",
+        "--retry-delay",
+        "3",
+        "--retry-all-errors",
+        "--connect-timeout",
+        str(min(timeout, 20)),
+        "--max-time",
+        str(timeout),
+        "--max-filesize",
+        str(MAX_PAGE_BYTES),
+        "--user-agent",
+        USER_AGENT,
+        "--header",
+        "Accept: text/html,application/xhtml+xml,application/json",
         url,
-        headers={
-            "User-Agent": USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/json",
-        },
-    )
-    with urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise RuntimeError(f"HTTP {response.status} dla {url}")
-        length = response.headers.get("Content-Length")
-        if length and int(length) > MAX_PAGE_BYTES:
-            raise RuntimeError(f"Strona jest za duża: {url}")
-        data = response.read(MAX_PAGE_BYTES + 1)
-        if len(data) > MAX_PAGE_BYTES:
-            raise RuntimeError(f"Strona jest za duża: {url}")
-        content_type = response.headers.get("Content-Type", "")
-    charset = "utf-8"
-    match = re.search(r"charset=([\w-]+)", content_type, re.I)
-    if match:
-        charset = match.group(1)
-    return data.decode(charset, errors="replace")
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            check=False,
+            timeout=(timeout * 4) + 20,
+        )
+    except FileNotFoundError:
+        request = Request(
+            url,
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml,application/json",
+            },
+        )
+        with urlopen(request, timeout=timeout) as response:
+            if response.status != 200:
+                raise RuntimeError(f"HTTP {response.status} dla {url}")
+            data = response.read(MAX_PAGE_BYTES + 1)
+    else:
+        if result.returncode != 0:
+            message = result.stderr.decode("utf-8", errors="replace").strip()
+            raise RuntimeError(message or f"curl zakończył się kodem {result.returncode}")
+        data = result.stdout
+
+    if len(data) > MAX_PAGE_BYTES:
+        raise RuntimeError(f"Strona jest za duża: {url}")
+    return data.decode("utf-8", errors="replace")
 
 
 def load_existing() -> dict:
@@ -344,7 +375,7 @@ def merge_history(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--timeout", type=int, default=35)
+    parser.add_argument("--timeout", type=int, default=60)
     args = parser.parse_args()
     existing_data = load_existing()
     existing_items = [
