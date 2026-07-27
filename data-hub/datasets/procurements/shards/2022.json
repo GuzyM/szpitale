@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "procurements",
+  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "partition": {
+    "key": "2022",
+    "immutable": true
+  },
+  "records": [
+    {
+      "id": "bzp:ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+      "hospital": {
+        "name": "Szpital Miejski w Siemianowicach Śląskich Sp. z o.o.",
+        "krs": null,
+        "regon": null
+      },
+      "subject": "Usługa sterylizacji narzędzi medycznych dla potrzeb Szpitala Miejskiego",
+      "referenceNumber": "SZM/DZ/341/34/2022",
+      "category": "Usługi sterylizacji",
+      "cpv": [],
+      "status": "Zakończone – zawarta umowa",
+      "dates": {
+        "published": null,
+        "updated": null,
+        "awarded": null
+      },
+      "value": {
+        "amount": null,
+        "currency": "PLN",
+        "kind": "unknown",
+        "status": "not-extracted"
+      },
+      "contractor": {
+        "name": null,
+        "status": "not-extracted"
+      },
+      "documents": [
+        {
+          "type": "draft-contract",
+          "title": "Projekt umowy – dostępny w dokumentach postępowania",
+          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+          "availability": "source-page"
+        },
+        {
+          "type": "source",
+          "title": "Pełna karta postępowania",
+          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+          "availability": "source-page"
+        }
+      ],
+      "source": {
+        "system": "BZP / e-Zamówienia",
+        "sourceId": "ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+        "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+        "retrievedAt": "2026-07-25T00:00:00+02:00"
+      },
+      "aiSummary": {
+        "status": "pending",
+        "text": null,
+        "generatedAt": null,
+        "model": null,
+        "basedOn": []
+      }
+    }
+  ]
+}

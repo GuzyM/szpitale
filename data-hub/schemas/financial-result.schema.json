@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hospitalapp.pl/schemas/financial-result.schema.json",
+  "title": "HospitalAPP hospital financial result",
+  "type": "object",
+  "required": [
+    "id",
+    "hospital",
+    "period",
+    "statement",
+    "indicators",
+    "source"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ekrs:"
+    },
+    "hospital": {
+      "type": "object",
+      "required": [
+        "name",
+        "krs"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "krs": {
+          "type": "string"
+        },
+        "regon": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "period": {
+      "type": "object",
+      "required": [
+        "from",
+        "to",
+        "year"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "date"
+        },
+        "to": {
+          "type": "string",
+          "format": "date"
+        },
+        "year": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "statement": {
+      "type": "object",
+      "properties": {
+        "revenue": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "costs": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "netResult": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "assets": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "liabilities": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "cash": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "const": "PLN"
+        }
+      },
+      "additionalProperties": false
+    },
+    "indicators": {
+      "type": "object",
+      "properties": {
+        "netMargin": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "debtRatio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "currentRatio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "system",
+        "documentType",
+        "url",
+        "retrievedAt"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "const": "eKRS"
+        },
+        "documentType": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

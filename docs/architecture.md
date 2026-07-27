@@ -1,6 +1,6 @@
 # Architektura danych HospitalAPP
 
-Status: decyzja obowiązująca od 22.07.2026 r.
+Status: decyzja obowiązująca od 25.07.2026 r.
 
 ## Wybrany model
 
@@ -11,7 +11,9 @@ HospitalAPP jest aplikacją PWA typu **local-first**:
 - ustawienia użytkownika i własne kalkulacje pozostają lokalnie na urządzeniu,
 - aplikacja działa offline po pierwszym pełnym uruchomieniu.
 
-Ten model obejmuje obecnie dane JGP, charakterystykę grup, publiczne reguły współczynników, referencyjny profil umowy NFZ oraz legislację MZ.
+Od wersji 1.0 wszystkie zbiory są rejestrowane we wspólnym manifeście Data Hub. Ten model obejmuje obecnie dane JGP, charakterystykę grup, publiczne reguły współczynników, referencyjny profil umowy NFZ, legislację MZ, rachunek kosztów, kalkulator skutków płac oraz pilotażowy zbiór przetargów.
+
+Kompletna architektura, formaty rekordów, harmonogram i plan przejścia do wersji 2.0 znajdują się w dokumencie [Data Hub v1](data-hub-v1.md).
 
 ## Dlaczego bez Supabase
 
@@ -39,3 +41,6 @@ Dane publiczne mogą nadal pozostać w plikach nawet po dodaniu bazy dla danych 
 - Automaty nie kasują ostatniej poprawnej wersji danych po błędzie źródła.
 - Dane wrażliwe, bankowe, medyczne i własne kalkulacje nie trafiają do publicznego repozytorium.
 - AI może przygotowywać podsumowania w osobnym etapie, ale pobieranie i aktualizacja danych działa zwykłym kodem.
+- Aplikacja odczytuje dane przez klienta Data Hub, a nie bezpośrednio z miejsca ich przechowywania.
+- Nie przechowujemy całych dokumentów, gdy wystarczą wyodrębnione dane i link do źródła.
+- Duże zbiory są dzielone na paczki; zamknięte paczki historyczne nie są przepisywane.

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "financial-results",
+  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "recordCount": 0,
+  "partitionStrategy": "reporting-year",
+  "partitions": []
+}

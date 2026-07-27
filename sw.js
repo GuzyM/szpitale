@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "hospitalapp-v0.8.0";
+const CACHE_NAME = "hospitalapp-v1.0.0";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -27,7 +27,16 @@ const APP_SHELL = [
   "./data/jgp-characteristics-14.js",
   "./data/nfz-contract.js",
   "./data/nfz-coefficients.js",
+  "./data/cost-accounting-regulation.js",
+  "./data/cost-accounting.js",
   "./data/mz-legislation.json",
+  "./data-hub.js",
+  "./data-hub/manifest.json",
+  "./data-hub/sources.json",
+  "./data-hub/datasets/procurements/index.json",
+  "./data-hub/datasets/procurements/shards/2022.json",
+  "./data-hub/datasets/procurements/shards/2025.json",
+  "./data-hub/datasets/financial-results/index.json",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0.0",
+  "productVersion": "1.0.0",
+  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "description": "Publiczny katalog zbiorów danych HospitalAPP. Dane użytkownika nie są częścią Data Hub.",
+  "datasets": {
+    "jgp": {
+      "label": "JGP",
+      "status": "active",
+      "adapter": "legacy-js",
+      "schemaVersion": "1.0.0",
+      "recordCount": 702,
+      "updatedAt": "2026-04-30",
+      "sourceIds": [
+        "nfz"
+      ],
+      "paths": [
+        "./data/jgp-data-meta.js",
+        "./data/jgp-characteristics-meta.js"
+      ]
+    },
+    "legislation": {
+      "label": "Legislacja MZ",
+      "status": "active",
+      "adapter": "single-json",
+      "schemaVersion": "1.0.0",
+      "path": "./data/mz-legislation.json",
+      "updatedAt": "2026-07-24",
+      "sourceIds": [
+        "rcl",
+        "mz"
+      ]
+    },
+    "procurements": {
+      "label": "Przetargi",
+      "status": "pilot",
+      "adapter": "sharded-json",
+      "schemaVersion": "1.0.0",
+      "schema": "./data-hub/schemas/procurement.schema.json",
+      "indexPath": "./data-hub/datasets/procurements/index.json",
+      "recordCount": 3,
+      "updatedAt": "2026-07-25",
+      "sourceIds": [
+        "bzp"
+      ]
+    },
+    "financial-results": {
+      "label": "Wyniki finansowe szpitali",
+      "status": "prepared",
+      "adapter": "sharded-json",
+      "schemaVersion": "1.0.0",
+      "schema": "./data-hub/schemas/financial-result.schema.json",
+      "indexPath": "./data-hub/datasets/financial-results/index.json",
+      "recordCount": 0,
+      "updatedAt": "2026-07-25",
+      "sourceIds": [
+        "ekrs"
+      ]
+    },
+    "nfz-contracts": {
+      "label": "Umowy NFZ",
+      "status": "pilot",
+      "adapter": "legacy-js",
+      "schemaVersion": "1.0.0",
+      "updatedAt": "2026-07-17",
+      "sourceIds": [
+        "nfz"
+      ],
+      "paths": [
+        "./data/nfz-contract.js"
+      ]
+    },
+    "cost-accounting": {
+      "label": "Rachunek kosztów",
+      "status": "active",
+      "adapter": "legacy-js",
+      "schemaVersion": "1.0.0",
+      "updatedAt": "2026-07-24",
+      "sourceIds": [
+        "eli",
+        "aotmit"
+      ],
+      "paths": [
+        "./data/cost-accounting-regulation.js",
+        "./data/cost-accounting.js"
+      ]
+    },
+    "aotmit": {
+      "label": "AOTMiT",
+      "status": "prepared",
+      "adapter": "none",
+      "schemaVersion": "1.0.0",
+      "sourceIds": [
+        "aotmit"
+      ]
+    },
+    "benchmarks": {
+      "label": "Benchmarki",
+      "status": "prepared",
+      "adapter": "none",
+      "schemaVersion": "1.0.0",
+      "sourceIds": []
+    },
+    "calculators": {
+      "label": "Kalkulatory",
+      "status": "active",
+      "adapter": "local-only",
+      "schemaVersion": "1.0.0",
+      "updatedAt": "2026-07-24",
+      "sourceIds": [
+        "gus",
+        "eli"
+      ]
+    }
+  },
+  "sourcesPath": "./data-hub/sources.json"
+}

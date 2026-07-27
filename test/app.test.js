@@ -42,10 +42,32 @@ function createApp(legislationOverride = null) {
   });
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "nfz-contract.js"), "utf8"));
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "nfz-coefficients.js"), "utf8"));
-  dom.window.fetch = async () => ({
-    ok: true,
-    json: async () => legislation
-  });
+  dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "cost-accounting-regulation.js"), "utf8"));
+  dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "cost-accounting.js"), "utf8"));
+  dom.window.fetch = async (request) => {
+    const url = String(request).split("?")[0];
+    let payload;
+    if (url.endsWith("data-hub/manifest.json")) {
+      payload = JSON.parse(fs.readFileSync(path.join(ROOT, "data-hub", "manifest.json"), "utf8"));
+    } else if (url.endsWith("data-hub/datasets/procurements/index.json")) {
+      payload = JSON.parse(fs.readFileSync(
+        path.join(ROOT, "data-hub", "datasets", "procurements", "index.json"),
+        "utf8"
+      ));
+    } else if (url.includes("data-hub/datasets/procurements/shards/")) {
+      const filename = path.basename(url);
+      payload = JSON.parse(fs.readFileSync(
+        path.join(ROOT, "data-hub", "datasets", "procurements", "shards", filename),
+        "utf8"
+      ));
+    } else if (url.endsWith("data/mz-legislation.json")) {
+      payload = legislation;
+    } else {
+      return { ok: false, status: 404, json: async () => ({}) };
+    }
+    return { ok: true, status: 200, json: async () => payload };
+  };
+  dom.window.eval(fs.readFileSync(path.join(ROOT, "data-hub.js"), "utf8"));
   dom.window.eval(script);
   return dom;
 }
@@ -127,9 +149,94 @@ test("HospitalAPP opens on a separate modern module home screen", () => {
   assert.equal(document.querySelector("#gruper-screen").hidden, true);
   assert.match(document.querySelector("#home-title").textContent, /analizy szpitala/i);
   assert.equal(document.querySelector("#open-gruper").disabled, false);
-  assert.equal(document.querySelectorAll(".module-card:disabled").length, 3);
-  assert.match(document.querySelector(".dashboard-grid").textContent, /Kalkulator wynagrodzeń/);
+  assert.equal(document.querySelectorAll(".module-card:disabled").length, 2);
+  assert.equal(document.querySelector("#open-payroll").disabled, false);
+  assert.equal(document.querySelector("#open-cost-accounting").disabled, false);
+  assert.match(document.querySelector(".dashboard-grid").textContent, /Skutki wzrostu płac/);
+  assert.match(document.querySelector(".dashboard-grid").textContent, /Rachunek kosztów/);
   assert.equal(document.querySelector("#open-legislation").disabled, false);
+  assert.equal(document.querySelector("#open-procurements").disabled, false);
+});
+
+test("Data Hub procurement pilot searches processed records without storing documents", async () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-procurements").click();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+
+  assert.equal(document.querySelector("#procurements-screen").hidden, false);
+  assert.equal(document.querySelectorAll("#procurements-results .procurement-card").length, 3);
+  assert.match(document.querySelector("#procurements-results").textContent, /Szpital Tucholski/i);
+  assert.match(document.querySelector("#procurements-results").textContent, /Projekt umowy/i);
+  assert.match(document.querySelector("#procurements-results").textContent, /Nie wyodrębniono/i);
+
+  const searchInput = document.querySelector("#procurements-search");
+  searchInput.value = "Zabrze materiały";
+  document.querySelector("#procurements-search-form").dispatchEvent(
+    new dom.window.Event("submit", { bubbles: true, cancelable: true })
+  );
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+
+  assert.equal(document.querySelectorAll("#procurements-results .procurement-card").length, 1);
+  assert.match(document.querySelector("#procurements-results").textContent, /DZP\/29 TP\/2025/i);
+  assert.equal(
+    Array.from(document.querySelectorAll(".procurement-card a"))
+      .every((link) => link.hostname === "ezamowienia.gov.pl"),
+    true
+  );
+});
+
+test("Rachunek kosztów searches the regulation and exposes 20 practical questions", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-cost-accounting").click();
+
+  assert.equal(document.querySelector("#cost-accounting-screen").hidden, false);
+  assert.equal(document.querySelectorAll("#knowledge-results .knowledge-result.is-faq").length, 20);
+  assert.equal(document.querySelectorAll("#knowledge-results .knowledge-result.is-regulation").length, 21);
+  assert.equal(dom.window.HOSPITALAPP_SRK_FULLTEXT.sections.length, 19);
+  assert.equal(document.querySelectorAll("#knowledge-resources a").length, 5);
+
+  const searchInput = document.querySelector("#knowledge-search");
+  searchInput.value = "blok operacyjny";
+  input(dom.window, searchInput);
+  assert.match(document.querySelector("#knowledge-results").textContent, /Centralnego Bloku Operacyjnego/i);
+  assert.equal(
+    Array.from(document.querySelectorAll("#knowledge-results .knowledge-result"))
+      .every((item) => /blok|sala/i.test(item.textContent)),
+    true
+  );
+
+  searchInput.value = "";
+  input(dom.window, searchInput);
+  document.querySelector('[data-knowledge-filter="faq"]').click();
+  assert.equal(document.querySelectorAll("#knowledge-results .knowledge-result").length, 20);
+
+  document.querySelector('[data-knowledge-filter="regulation"]').click();
+  searchInput.value = "cyberprzestępstw";
+  input(dom.window, searchInput);
+  assert.equal(document.querySelectorAll("#knowledge-results .knowledge-result").length, 1);
+  assert.match(document.querySelector(".knowledge-official-match").textContent, /cyberprzestępstw/i);
+});
+
+test("payroll impact calculator uses all 10 statutory groups and official 2026 bases", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-payroll").click();
+
+  assert.equal(document.querySelector("#payroll-screen").hidden, false);
+  assert.equal(document.querySelectorAll("#payroll-group-list .payroll-group-row").length, 10);
+  assert.equal(document.querySelector("#payroll-previous-base").value, "8181.72");
+  assert.equal(document.querySelector("#payroll-current-base").value, "8903.56");
+
+  const groupOne = document.querySelector('[data-payroll-headcount="1"]');
+  groupOne.value = "1";
+  input(dom.window, groupOne);
+  assert.match(document.querySelector('[data-payroll-delta="1"]').textContent, /1[\s\u00a0]?046,67/);
+  assert.match(document.querySelector("#payroll-monthly-result").textContent, /1[\s\u00a0]?261,03/);
+  assert.match(document.querySelector("#payroll-halfyear-result").textContent, /7[\s\u00a0]?566,15/);
+  assert.match(document.querySelector("#payroll-year-result").textContent, /15[\s\u00a0]?132,31/);
 });
 
 test("entering Gruper first asks how the user wants to search", () => {
@@ -508,7 +615,8 @@ test("manifest and offline shell reference all core files", () => {
   for (const file of [
     "index.html", "app.css", "data/jgp-data-meta.js", "data/jgp-data-04.js",
     "data/jgp-characteristics-meta.js", "data/jgp-characteristics-14.js",
-    "data/nfz-contract.js", "app.js", "manifest.webmanifest"
+    "data/nfz-contract.js", "data-hub.js", "data-hub/manifest.json",
+    "data-hub/datasets/procurements/index.json", "app.js", "manifest.webmanifest"
   ]) {
     assert.match(worker, new RegExp(file.replace(".", "\\.")));
   }

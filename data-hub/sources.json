@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "1.0.0",
+  "sources": [
+    {
+      "id": "ekrs",
+      "label": "eKRS",
+      "owner": "Ministerstwo Sprawiedliwości",
+      "url": "https://ekrs.ms.gov.pl/",
+      "collectorStatus": "prepared",
+      "plannedDatasets": [
+        "financial-results"
+      ]
+    },
+    {
+      "id": "bzp",
+      "label": "Biuletyn Zamówień Publicznych / e-Zamówienia",
+      "owner": "Urząd Zamówień Publicznych",
+      "url": "https://ezamowienia.gov.pl/",
+      "collectorStatus": "pilot",
+      "plannedDatasets": [
+        "procurements"
+      ]
+    },
+    {
+      "id": "ted",
+      "label": "TED",
+      "owner": "Urząd Publikacji Unii Europejskiej",
+      "url": "https://ted.europa.eu/",
+      "collectorStatus": "planned",
+      "plannedDatasets": [
+        "procurements"
+      ]
+    },
+    {
+      "id": "nfz",
+      "label": "Narodowy Fundusz Zdrowia",
+      "owner": "NFZ",
+      "url": "https://www.nfz.gov.pl/",
+      "collectorStatus": "pilot",
+      "plannedDatasets": [
+        "jgp",
+        "nfz-contracts"
+      ]
+    },
+    {
+      "id": "aotmit",
+      "label": "Agencja Oceny Technologii Medycznych i Taryfikacji",
+      "owner": "AOTMiT",
+      "url": "https://www.aotm.gov.pl/",
+      "collectorStatus": "manual",
+      "plannedDatasets": [
+        "cost-accounting",
+        "aotmit"
+      ]
+    },
+    {
+      "id": "rcl",
+      "label": "Rządowy Proces Legislacyjny",
+      "owner": "Rządowe Centrum Legislacji",
+      "url": "https://legislacja.gov.pl/",
+      "collectorStatus": "active",
+      "plannedDatasets": [
+        "legislation"
+      ]
+    },
+    {
+      "id": "mz",
+      "label": "Ministerstwo Zdrowia",
+      "owner": "Ministerstwo Zdrowia",
+      "url": "https://www.gov.pl/web/zdrowie",
+      "collectorStatus": "active",
+      "plannedDatasets": [
+        "legislation"
+      ]
+    },
+    {
+      "id": "eli",
+      "label": "Elektroniczny Dziennik Ustaw / ELI",
+      "owner": "Kancelaria Sejmu",
+      "url": "https://eli.gov.pl/",
+      "collectorStatus": "manual",
+      "plannedDatasets": [
+        "cost-accounting",
+        "calculators"
+      ]
+    },
+    {
+      "id": "gus",
+      "label": "Główny Urząd Statystyczny",
+      "owner": "GUS",
+      "url": "https://stat.gov.pl/",
+      "collectorStatus": "manual",
+      "plannedDatasets": [
+        "calculators"
+      ]
+    },
+    {
+      "id": "hospital-bip",
+      "label": "BIP i strony szpitali",
+      "owner": "Poszczególne szpitale",
+      "url": "https://www.gov.pl/web/bip",
+      "collectorStatus": "planned",
+      "plannedDatasets": [
+        "procurements",
+        "contracts",
+        "benchmarks"
+      ]
+    }
+  ]
+}

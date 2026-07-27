@@ -4,6 +4,16 @@ const CATALOG = window.JGP_CATALOG || { meta: {}, groups: [] };
 const CHARACTERISTICS = window.JGP_CHARACTERISTICS || { meta: {}, blocks: {} };
 const CONTRACT_DATA = window.NFZ_CONTRACT || { meta: {}, scopes: [] };
 const COEFFICIENT_REGISTRY = window.HOSPITALAPP_COEFFICIENTS || { meta: {}, rules: [] };
+const SRK_FULLTEXT = window.HOSPITALAPP_SRK_FULLTEXT || { meta: {}, sections: [] };
+const COST_ACCOUNTING = window.HOSPITALAPP_COST_ACCOUNTING || {
+  meta: {},
+  regulationEntries: [],
+  faq: [],
+  resources: []
+};
+const PAYROLL_DATA = window.HOSPITALAPP_PAYROLL || { meta: {}, groups: [] };
+const DATA_HUB = window.HospitalDataHub || null;
+const SRK_FULLTEXT_BY_ID = new Map((SRK_FULLTEXT.sections || []).map((section) => [section.id, section]));
 const GROUPS = CATALOG.groups || [];
 const BLOCKS = CHARACTERISTICS.blocks || {};
 const GROUP_BY_CODE = new Map(GROUPS.map((group) => [group.code, group]));
@@ -12,6 +22,7 @@ const STORAGE_KEY = "hospitalapp-jgp-v06";
 const PREVIOUS_STORAGE_KEYS = ["hospitalapp-jgp-v05", "hospitalapp-jgp-v04", "jgp-calculator-v03"];
 const LEGISLATION_CHECK_KEY = "hospitalapp-mz-legislation-last-check";
 const LEGISLATION_PREFERENCES_KEY = "hospitalapp-mz-legislation-preferences-v1";
+const PAYROLL_STORAGE_KEY = "hospitalapp-payroll-impact-v09";
 const LEGISLATION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000;
 const LEGISLATION_DATA_URL = "./data/mz-legislation.json";
 const MODE_LABELS = {
@@ -83,13 +94,29 @@ let legislationData = {
   items: []
 };
 let legislationPreferences = loadLegislationPreferences();
+let knowledgeFilter = "all";
+let payrollState = loadPayrollState();
+let procurementsData = {
+  meta: {
+    generatedAt: null,
+    recordCount: 0
+  },
+  items: []
+};
+let procurementsLoaded = false;
 
 const elements = {
   homeScreen: document.querySelector("#home-screen"),
   gruperScreen: document.querySelector("#gruper-screen"),
   legislationScreen: document.querySelector("#legislation-screen"),
+  costAccountingScreen: document.querySelector("#cost-accounting-screen"),
+  payrollScreen: document.querySelector("#payroll-screen"),
+  procurementsScreen: document.querySelector("#procurements-screen"),
   openGruper: document.querySelector("#open-gruper"),
   openLegislation: document.querySelector("#open-legislation"),
+  openCostAccounting: document.querySelector("#open-cost-accounting"),
+  openPayroll: document.querySelector("#open-payroll"),
+  openProcurements: document.querySelector("#open-procurements"),
   resumeGroup: document.querySelector("#resume-group"),
   resumeGroupLabel: document.querySelector("#resume-group-label"),
   backButton: document.querySelector("#back-button"),
@@ -187,7 +214,33 @@ const elements = {
   legislationCount: document.querySelector("#legislation-count"),
   legislationTotalCount: document.querySelector("#legislation-total-count"),
   legislationNewCount: document.querySelector("#legislation-new-count"),
-  legislationEmpty: document.querySelector("#legislation-empty")
+  legislationEmpty: document.querySelector("#legislation-empty"),
+  knowledgeSearch: document.querySelector("#knowledge-search"),
+  knowledgeFilters: document.querySelector("#knowledge-filters"),
+  knowledgeResults: document.querySelector("#knowledge-results"),
+  knowledgeCount: document.querySelector("#knowledge-count"),
+  knowledgeEmpty: document.querySelector("#knowledge-empty"),
+  knowledgeResources: document.querySelector("#knowledge-resources"),
+  payrollPreviousBase: document.querySelector("#payroll-previous-base"),
+  payrollCurrentBase: document.querySelector("#payroll-current-base"),
+  payrollOncost: document.querySelector("#payroll-oncost"),
+  payrollIncludeOncost: document.querySelector("#payroll-include-oncost"),
+  payrollGroupList: document.querySelector("#payroll-group-list"),
+  payrollFteTotal: document.querySelector("#payroll-fte-total"),
+  payrollReset: document.querySelector("#payroll-reset"),
+  payrollResultMode: document.querySelector("#payroll-result-mode"),
+  payrollResultFte: document.querySelector("#payroll-result-fte"),
+  payrollMonthlyResult: document.querySelector("#payroll-monthly-result"),
+  payrollHalfyearResult: document.querySelector("#payroll-halfyear-result"),
+  payrollYearResult: document.querySelector("#payroll-year-result"),
+  payrollResultDetails: document.querySelector("#payroll-result-details"),
+  procurementsStatus: document.querySelector("#procurements-status"),
+  procurementsSearchForm: document.querySelector("#procurements-search-form"),
+  procurementsSearch: document.querySelector("#procurements-search"),
+  procurementsCount: document.querySelector("#procurements-count"),
+  procurementsUpdated: document.querySelector("#procurements-updated"),
+  procurementsResults: document.querySelector("#procurements-results"),
+  procurementsEmpty: document.querySelector("#procurements-empty")
 };
 
 const numberFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -284,6 +337,42 @@ function saveLegislationPreferences() {
     localStorage.setItem(LEGISLATION_PREFERENCES_KEY, JSON.stringify(legislationPreferences));
   } catch {
     // Prywatne oznaczenia są opcjonalne i nie blokują monitora legislacji.
+  }
+}
+
+function defaultPayrollState() {
+  return {
+    previousBase: Number(PAYROLL_DATA.meta?.previousBase) || 0,
+    currentBase: Number(PAYROLL_DATA.meta?.currentBase) || 0,
+    oncost: Number(PAYROLL_DATA.meta?.defaultEmployerOncost) || 0,
+    includeOncost: true,
+    headcounts: {}
+  };
+}
+
+function loadPayrollState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PAYROLL_STORAGE_KEY) || "{}");
+    const defaults = defaultPayrollState();
+    return {
+      ...defaults,
+      ...saved,
+      previousBase: Number(saved.previousBase ?? defaults.previousBase) || 0,
+      currentBase: Number(saved.currentBase ?? defaults.currentBase) || 0,
+      oncost: Number(saved.oncost ?? defaults.oncost) || 0,
+      includeOncost: saved.includeOncost == null ? defaults.includeOncost : Boolean(saved.includeOncost),
+      headcounts: { ...(saved.headcounts || {}) }
+    };
+  } catch {
+    return defaultPayrollState();
+  }
+}
+
+function savePayrollState() {
+  try {
+    localStorage.setItem(PAYROLL_STORAGE_KEY, JSON.stringify(payrollState));
+  } catch {
+    // Kalkulator działa także bez możliwości zapisu ustawień.
   }
 }
 
@@ -502,26 +591,38 @@ function showScreen(screen, options = {}) {
   const isHome = screen === "home";
   const isGruper = screen === "gruper";
   const isLegislation = screen === "legislation";
+  const isCostAccounting = screen === "cost-accounting";
+  const isPayroll = screen === "payroll";
+  const isProcurements = screen === "procurements";
   elements.homeScreen.hidden = !isHome;
   elements.gruperScreen.hidden = !isGruper;
   elements.legislationScreen.hidden = !isLegislation;
+  elements.costAccountingScreen.hidden = !isCostAccounting;
+  elements.payrollScreen.hidden = !isPayroll;
+  elements.procurementsScreen.hidden = !isProcurements;
   elements.backButton.hidden = isHome;
   elements.brandMark.hidden = !isHome;
-  elements.topbarEyebrow.textContent = isHome
-    ? "Centrum analityki szpitalnej"
-    : isGruper ? "HospitalAPP · moduł JGP" : "HospitalAPP · źródła publiczne";
-  elements.topbarTitle.textContent = isHome
-    ? "HospitalAPP"
-    : isGruper ? "Gruper i wycena JGP" : "Legislacja MZ";
-  document.title = isHome
-    ? "HospitalAPP"
-    : isGruper ? "HospitalAPP · Gruper JGP" : "HospitalAPP · Legislacja MZ";
+  const screenMeta = isHome
+    ? ["Centrum analityki szpitalnej", "HospitalAPP", "HospitalAPP"]
+    : isGruper
+      ? ["HospitalAPP · moduł JGP", "Gruper i wycena JGP", "HospitalAPP · Gruper JGP"]
+      : isLegislation
+        ? ["HospitalAPP · źródła publiczne", "Legislacja MZ", "HospitalAPP · Legislacja MZ"]
+        : isCostAccounting
+          ? ["HospitalAPP · baza wiedzy", "Rachunek kosztów", "HospitalAPP · Rachunek kosztów"]
+          : isPayroll
+            ? ["HospitalAPP · kalkulator", "Skutki wzrostu płac", "HospitalAPP · Skutki wzrostu płac"]
+            : ["HospitalAPP · dane publiczne", "Przetargi", "HospitalAPP · Przetargi"];
+  [elements.topbarEyebrow.textContent, elements.topbarTitle.textContent, document.title] = screenMeta;
   if (isGruper && !options.keepResult) {
     elements.resultCard.hidden = true;
     elements.emptyState.hidden = true;
     elements.suggestions.replaceChildren();
     elements.searchInput.value = "";
   }
+  if (isCostAccounting) renderCostKnowledge();
+  if (isPayroll) updatePayrollCalculation();
+  if (isProcurements && procurementsLoaded) renderProcurements();
   updateResumeCard();
 }
 
@@ -1219,6 +1320,364 @@ function updateConnectionBadge() {
   elements.connectionBadge.classList.toggle("offline", !isOnline);
 }
 
+function knowledgeResultCard(item) {
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  const summaryCopy = document.createElement("span");
+  const badges = document.createElement("span");
+  const title = document.createElement("strong");
+  const hint = document.createElement("small");
+  const body = document.createElement("div");
+  const text = document.createElement("p");
+  const source = document.createElement("a");
+  const isFaq = item.kind === "faq";
+  details.className = `knowledge-result ${isFaq ? "is-faq" : "is-regulation"}`;
+  summaryCopy.className = "knowledge-result-summary-copy";
+  badges.className = "knowledge-result-badges";
+  const typeBadge = document.createElement("b");
+  typeBadge.textContent = isFaq ? item.category : item.reference;
+  badges.appendChild(typeBadge);
+  if (!isFaq) {
+    const topicBadge = document.createElement("span");
+    topicBadge.textContent = item.topic;
+    badges.appendChild(topicBadge);
+  }
+  title.textContent = isFaq ? item.question : item.title;
+  hint.textContent = isFaq ? item.reference : "Opracowanie treści przepisu";
+  summaryCopy.append(badges, title, hint);
+  summary.appendChild(summaryCopy);
+  text.textContent = isFaq ? item.answer : item.text;
+  source.href = isFaq
+    ? "https://www.aotm.gov.pl/standard-rachunku-kosztow/wsparcie-aotmit-w-srk/faq/"
+    : COST_ACCOUNTING.meta?.sourceUrl;
+  source.target = "_blank";
+  source.rel = "noopener";
+  source.textContent = isFaq ? "Porównaj z FAQ AOTMiT ↗" : "Zobacz pełny akt prawny ↗";
+  body.appendChild(text);
+  if (!isFaq && item.matchExcerpt) {
+    const match = document.createElement("aside");
+    const matchLabel = document.createElement("strong");
+    const matchText = document.createElement("p");
+    match.className = "knowledge-official-match";
+    matchLabel.textContent = "Trafienie w pełnej treści aktu";
+    matchText.textContent = item.matchExcerpt;
+    match.append(matchLabel, matchText);
+    body.appendChild(match);
+  }
+  body.appendChild(source);
+  details.append(summary, body);
+  return details;
+}
+
+function renderKnowledgeResources() {
+  elements.knowledgeResources.replaceChildren();
+  (COST_ACCOUNTING.resources || []).forEach((resource) => {
+    const link = document.createElement("a");
+    const type = document.createElement("span");
+    const title = document.createElement("strong");
+    const description = document.createElement("small");
+    link.href = resource.url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    type.textContent = resource.type;
+    title.textContent = resource.title;
+    description.textContent = `${resource.description} ↗`;
+    link.append(type, title, description);
+    elements.knowledgeResources.appendChild(link);
+  });
+}
+
+function regulationSourceText(reference) {
+  const paragraph = String(reference || "").match(/^§\s*(\d+)/);
+  if (paragraph) return SRK_FULLTEXT_BY_ID.get(`paragraph-${paragraph[1]}`)?.text || "";
+  const annex = String(reference || "").match(/^Załącznik nr\s*(\d+)/i);
+  if (annex) return SRK_FULLTEXT_BY_ID.get(`annex-${annex[1]}`)?.text || "";
+  return "";
+}
+
+function regulationMatchExcerpt(text, query) {
+  if (!text || !query) return "";
+  const position = normalize(text).indexOf(query);
+  if (position < 0) return "";
+  const radius = 190;
+  const start = Math.max(0, position - radius);
+  const end = Math.min(text.length, position + query.length + radius);
+  const excerpt = text.slice(start, end).replace(/\s+/g, " ").trim();
+  return `${start > 0 ? "… " : ""}${excerpt}${end < text.length ? " …" : ""}`;
+}
+
+function renderCostKnowledge() {
+  const query = normalize(elements.knowledgeSearch.value);
+  const regulationEntries = (COST_ACCOUNTING.regulationEntries || []).map((item) => ({
+    ...item,
+    kind: "regulation",
+    sourceText: regulationSourceText(item.reference)
+  }));
+  const faqEntries = (COST_ACCOUNTING.faq || []).map((item) => ({ ...item, kind: "faq" }));
+  const items = [...regulationEntries, ...faqEntries]
+    .filter((item) => {
+      if (knowledgeFilter !== "all" && item.kind !== knowledgeFilter) return false;
+      return normalize([
+        item.reference,
+        item.title,
+        item.topic,
+        item.text,
+        item.category,
+        item.question,
+        item.answer,
+        item.keywords,
+        item.sourceText
+      ].join(" ")).includes(query);
+    })
+    .map((item) => ({
+      ...item,
+      matchExcerpt: item.kind === "regulation"
+        ? regulationMatchExcerpt(item.sourceText, query)
+        : ""
+    }));
+  elements.knowledgeResults.replaceChildren();
+  items.forEach((item) => elements.knowledgeResults.appendChild(knowledgeResultCard(item)));
+  elements.knowledgeCount.textContent = `${items.length} wyników`;
+  elements.knowledgeEmpty.hidden = items.length > 0;
+}
+
+function setKnowledgeFilter(filter) {
+  if (!["all", "regulation", "faq"].includes(filter)) return;
+  knowledgeFilter = filter;
+  elements.knowledgeFilters.querySelectorAll("[data-knowledge-filter]").forEach((button) => {
+    const active = button.dataset.knowledgeFilter === filter;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  renderCostKnowledge();
+}
+
+function payrollFteLabel(value) {
+  return `${new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 2 }).format(value)} etatów`;
+}
+
+function renderPayrollGroups() {
+  elements.payrollGroupList.replaceChildren();
+  (PAYROLL_DATA.groups || []).forEach((group) => {
+    const row = document.createElement("article");
+    const identity = document.createElement("div");
+    const groupNumber = document.createElement("span");
+    const identityCopy = document.createElement("span");
+    const name = document.createElement("strong");
+    const description = document.createElement("small");
+    const rates = document.createElement("div");
+    const rateValues = document.createElement("strong");
+    const delta = document.createElement("small");
+    const headcountLabel = document.createElement("label");
+    const headcountText = document.createElement("span");
+    const headcount = document.createElement("input");
+    row.className = "payroll-group-row";
+    row.dataset.payrollGroupRow = group.id;
+    identity.className = "payroll-group-identity";
+    groupNumber.textContent = group.id;
+    identityCopy.className = "payroll-group-copy";
+    name.textContent = group.shortName;
+    description.textContent = `Współczynnik ${decimalFormatter.format(group.coefficient)} · ${group.name}`;
+    identityCopy.append(name, description);
+    identity.append(groupNumber, identityCopy);
+    rates.className = "payroll-group-rates";
+    rateValues.dataset.payrollRates = group.id;
+    delta.dataset.payrollDelta = group.id;
+    rates.append(rateValues, delta);
+    headcountLabel.className = "payroll-headcount-field";
+    headcountText.className = "sr-only";
+    headcountText.textContent = `Liczba etatów w grupie ${group.id}`;
+    headcount.type = "number";
+    headcount.min = "0";
+    headcount.step = "0.01";
+    headcount.inputMode = "decimal";
+    headcount.value = Number(payrollState.headcounts[group.id]) || "";
+    headcount.dataset.payrollHeadcount = group.id;
+    headcount.placeholder = "0";
+    headcountLabel.append(headcountText, headcount);
+    row.append(identity, rates, headcountLabel);
+    elements.payrollGroupList.appendChild(row);
+  });
+}
+
+function syncPayrollControls() {
+  elements.payrollPreviousBase.value = payrollState.previousBase;
+  elements.payrollCurrentBase.value = payrollState.currentBase;
+  elements.payrollOncost.value = payrollState.oncost;
+  elements.payrollIncludeOncost.checked = payrollState.includeOncost;
+}
+
+function updatePayrollCalculation() {
+  payrollState.previousBase = Math.max(0, Number(elements.payrollPreviousBase.value) || 0);
+  payrollState.currentBase = Math.max(0, Number(elements.payrollCurrentBase.value) || 0);
+  payrollState.oncost = Math.max(0, Number(elements.payrollOncost.value) || 0);
+  payrollState.includeOncost = elements.payrollIncludeOncost.checked;
+  let baseMonthly = 0;
+  let totalFte = 0;
+  (PAYROLL_DATA.groups || []).forEach((group) => {
+    const input = elements.payrollGroupList.querySelector(`[data-payroll-headcount="${group.id}"]`);
+    const headcount = Math.max(0, Number(input?.value) || 0);
+    payrollState.headcounts[group.id] = headcount;
+    totalFte += headcount;
+    const previousMinimum = payrollState.previousBase * group.coefficient;
+    const currentMinimum = payrollState.currentBase * group.coefficient;
+    const changePerFte = Math.max(0, currentMinimum - previousMinimum);
+    baseMonthly += headcount * changePerFte;
+    const rates = elements.payrollGroupList.querySelector(`[data-payroll-rates="${group.id}"]`);
+    const delta = elements.payrollGroupList.querySelector(`[data-payroll-delta="${group.id}"]`);
+    if (rates) rates.textContent = `${moneyFormatter.format(previousMinimum)} → ${moneyFormatter.format(currentMinimum)}`;
+    if (delta) delta.textContent = `+${moneyFormatter.format(changePerFte)} / etat`;
+  });
+  const employerMonthly = baseMonthly * (1 + payrollState.oncost / 100);
+  const selectedMonthly = payrollState.includeOncost ? employerMonthly : baseMonthly;
+  const oncostValue = Math.max(0, employerMonthly - baseMonthly);
+  elements.payrollFteTotal.textContent = payrollFteLabel(totalFte);
+  elements.payrollResultFte.textContent = payrollFteLabel(totalFte);
+  elements.payrollResultMode.textContent = payrollState.includeOncost
+    ? "Koszt z narzutami pracodawcy"
+    : "Wynagrodzenia zasadnicze";
+  elements.payrollMonthlyResult.textContent = moneyFormatter.format(selectedMonthly);
+  elements.payrollHalfyearResult.textContent = moneyFormatter.format(selectedMonthly * 6);
+  elements.payrollYearResult.textContent = moneyFormatter.format(selectedMonthly * 12);
+  elements.payrollResultDetails.textContent = payrollState.includeOncost
+    ? `Wzrost wynagrodzeń zasadniczych: ${moneyFormatter.format(baseMonthly)} miesięcznie · narzuty: ${moneyFormatter.format(oncostValue)} miesięcznie.`
+    : `Wynik nie zawiera narzutów pracodawcy. Po ich włączeniu: ${moneyFormatter.format(employerMonthly)} miesięcznie.`;
+  savePayrollState();
+}
+
+function resetPayrollCalculator() {
+  payrollState = defaultPayrollState();
+  syncPayrollControls();
+  renderPayrollGroups();
+  updatePayrollCalculation();
+}
+
+function procurementDocumentLabel(type) {
+  return {
+    swz: "SWZ",
+    "draft-contract": "Projekt umowy",
+    "questions-and-answers": "Pytania i odpowiedzi",
+    award: "Wynik",
+    source: "Źródło"
+  }[type] || "Dokument";
+}
+
+function procurementValueLabel(item) {
+  const value = item.value || {};
+  if (value.status === "verified" && Number.isFinite(Number(value.amount))) {
+    return moneyFormatter.format(Number(value.amount));
+  }
+  return "Nie wyodrębniono";
+}
+
+function procurementCard(item) {
+  const card = document.createElement("article");
+  const meta = document.createElement("div");
+  const category = document.createElement("span");
+  const status = document.createElement("span");
+  const title = document.createElement("h3");
+  const hospital = document.createElement("p");
+  const facts = document.createElement("dl");
+  const summary = document.createElement("section");
+  const summaryLabel = document.createElement("strong");
+  const summaryText = document.createElement("p");
+  const documents = document.createElement("div");
+  const source = document.createElement("a");
+  const publishedDate = item.dates?.published || item.dates?.updated;
+  card.className = "procurement-card";
+  meta.className = "procurement-card-meta";
+  category.textContent = item.category || "Zamówienie publiczne";
+  status.textContent = item.status || "Status nieodczytany";
+  meta.append(category, status);
+  title.textContent = item.subject;
+  hospital.className = "procurement-hospital";
+  hospital.textContent = [
+    item.hospital?.name || "Podmiot leczniczy",
+    item.referenceNumber ? `nr ${item.referenceNumber}` : null
+  ].filter(Boolean).join(" · ");
+  facts.className = "procurement-facts";
+  [
+    ["Data", publishedDate ? formatDate(publishedDate) : "Brak w rekordzie"],
+    ["Wartość", procurementValueLabel(item)],
+    ["Wykonawca", item.contractor?.status === "verified" ? item.contractor.name : "Nie wyodrębniono"]
+  ].forEach(([label, value]) => {
+    const row = document.createElement("div");
+    const term = document.createElement("dt");
+    const description = document.createElement("dd");
+    term.textContent = label;
+    description.textContent = value;
+    row.append(term, description);
+    facts.appendChild(row);
+  });
+  summary.className = `procurement-summary ${item.aiSummary?.status === "ready" ? "is-ready" : "is-pending"}`;
+  summaryLabel.textContent = item.aiSummary?.status === "ready"
+    ? "Streszczenie AI"
+    : "Streszczenie AI w przygotowaniu";
+  summaryText.textContent = item.aiSummary?.status === "ready" && item.aiSummary.text
+    ? item.aiSummary.text
+    : "W wersji pilotażowej pokazujemy wyłącznie metadane i linki. Streszczenie pojawi się dopiero po analizie wskazanych dokumentów.";
+  summary.append(summaryLabel, summaryText);
+  documents.className = "procurement-documents";
+  (item.documents || [])
+    .filter((documentItem) => documentItem.type !== "source")
+    .forEach((documentItem) => {
+      const link = document.createElement("a");
+      link.href = documentItem.url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.title = documentItem.title;
+      link.textContent = `${procurementDocumentLabel(documentItem.type)} ↗`;
+      documents.appendChild(link);
+    });
+  source.className = "procurement-source";
+  source.href = item.source?.url;
+  source.target = "_blank";
+  source.rel = "noopener";
+  source.textContent = "Zobacz oficjalną kartę postępowania ↗";
+  documents.appendChild(source);
+  card.append(meta, title, hospital, facts, summary, documents);
+  return card;
+}
+
+function renderProcurements() {
+  const items = procurementsData.items || [];
+  elements.procurementsResults.replaceChildren();
+  items.forEach((item) => elements.procurementsResults.appendChild(procurementCard(item)));
+  elements.procurementsCount.textContent = String(items.length);
+  elements.procurementsEmpty.hidden = items.length > 0;
+  elements.procurementsUpdated.textContent = `Ostatnia aktualizacja: ${formatLegislationDate(
+    procurementsData.meta?.generatedAt
+  )}`;
+}
+
+async function searchProcurements(options = {}) {
+  const query = elements.procurementsSearch.value.trim();
+  elements.procurementsStatus.textContent = "Szukam";
+  elements.procurementsSearchForm.querySelector("button").disabled = true;
+  try {
+    if (!DATA_HUB) throw new Error("Brak klienta Data Hub");
+    procurementsData = await DATA_HUB.search("procurements", query, {
+      limit: 50,
+      fresh: Boolean(options.fresh)
+    });
+    procurementsLoaded = true;
+    elements.procurementsStatus.textContent = navigator.onLine ? "Aktualne" : "Offline";
+    renderProcurements();
+    return true;
+  } catch {
+    elements.procurementsStatus.textContent = navigator.onLine ? "Brak danych" : "Offline";
+    procurementsData = {
+      meta: { generatedAt: null, recordCount: 0 },
+      items: []
+    };
+    procurementsLoaded = true;
+    renderProcurements();
+    return false;
+  } finally {
+    elements.procurementsSearchForm.querySelector("button").disabled = false;
+  }
+}
+
 function formatLegislationDate(value) {
   if (!value) return "Bez daty na liście";
   const date = new Date(value);
@@ -1375,10 +1834,15 @@ async function refreshLegislation(options = {}) {
   elements.refreshLegislation.disabled = true;
   elements.legislationStatus.textContent = "Sprawdzam";
   try {
-    const separator = LEGISLATION_DATA_URL.includes("?") ? "&" : "?";
-    const response = await window.fetch(`${LEGISLATION_DATA_URL}${separator}v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const nextData = await response.json();
+    let nextData;
+    if (DATA_HUB) {
+      nextData = await DATA_HUB.loadDataset("legislation", { fresh: true });
+    } else {
+      const separator = LEGISLATION_DATA_URL.includes("?") ? "&" : "?";
+      const response = await window.fetch(`${LEGISLATION_DATA_URL}${separator}v=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      nextData = await response.json();
+    }
     if (!nextData || !Array.isArray(nextData.items)) throw new Error("Nieprawidłowy format danych");
     legislationData = nextData;
     try {
@@ -1422,6 +1886,12 @@ elements.openGruper.addEventListener("click", () => {
 elements.openLegislation.addEventListener("click", () => {
   showScreen("legislation");
   maybeRefreshLegislation();
+});
+elements.openCostAccounting.addEventListener("click", () => showScreen("cost-accounting"));
+elements.openPayroll.addEventListener("click", () => showScreen("payroll"));
+elements.openProcurements.addEventListener("click", () => {
+  showScreen("procurements");
+  searchProcurements();
 });
 elements.resumeGroup.addEventListener("click", () => {
   showScreen("gruper", { keepResult: true });
@@ -1551,6 +2021,25 @@ elements.legislationList.addEventListener("click", (event) => {
   if (!button || !elements.legislationList.contains(button)) return;
   setLegislationPreference(button.dataset.legislationId, button.dataset.legislationAction);
 });
+elements.knowledgeSearch.addEventListener("input", renderCostKnowledge);
+elements.knowledgeFilters.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-knowledge-filter]");
+  if (button) setKnowledgeFilter(button.dataset.knowledgeFilter);
+});
+[
+  elements.payrollPreviousBase,
+  elements.payrollCurrentBase,
+  elements.payrollOncost
+].forEach((input) => input.addEventListener("input", updatePayrollCalculation));
+elements.payrollIncludeOncost.addEventListener("change", updatePayrollCalculation);
+elements.payrollGroupList.addEventListener("input", (event) => {
+  if (event.target.matches("[data-payroll-headcount]")) updatePayrollCalculation();
+});
+elements.payrollReset.addEventListener("click", resetPayrollCalculator);
+elements.procurementsSearchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  searchProcurements();
+});
 window.addEventListener("online", updateConnectionBadge);
 window.addEventListener("offline", updateConnectionBadge);
 
@@ -1566,6 +2055,11 @@ elements.sourceApiDate.textContent = formatDate(CONTRACT_DATA.meta.syncedAt);
 renderProviderSelector();
 renderCoefficientRegistry();
 renderLegislation();
+renderKnowledgeResources();
+renderCostKnowledge();
+syncPayrollControls();
+renderPayrollGroups();
+updatePayrollCalculation();
 setSearchMode(state.searchMode);
 showScreen("home");
 updateConnectionBadge();

@@ -1,0 +1,36 @@
+name: Walidacja Data Hub
+
+on:
+  pull_request:
+    paths:
+      - "data-hub/**"
+      - "data-hub.js"
+      - "scripts/validate_data_hub.py"
+      - "tests/test_data_hub.py"
+  push:
+    branches: ["main"]
+    paths:
+      - "data-hub/**"
+      - "data-hub.js"
+      - "scripts/validate_data_hub.py"
+      - "tests/test_data_hub.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Ustaw Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sprawdź manifest, paczki i rekordy
+        run: python3 scripts/validate_data_hub.py

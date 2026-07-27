@@ -2,7 +2,7 @@
   "id": "./index.html",
   "name": "HospitalAPP",
   "short_name": "HospitalAPP",
-  "description": "Mobilne narzędzia dla zarządzających szpitalem: Gruper JGP, wycena i Legislacja MZ.",
+  "description": "Publiczne dane i narzędzia dla zarządzających szpitalami: JGP, przetargi, legislacja, rachunek kosztów i kalkulatory.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",

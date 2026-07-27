@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b6b61">
-  <meta name="description" content="HospitalAPP: mobilny Gruper JGP, publiczne reguły wyceny, dane umów NFZ i Legislacja MZ.">
+  <meta name="description" content="HospitalAPP: publiczne dane dla zarządzających szpitalami, Gruper JGP, przetargi, legislacja, rachunek kosztów i kalkulatory.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HospitalAPP">
@@ -74,15 +74,26 @@
             <span class="module-state">Wkrótce</span>
           </button>
 
-          <button class="module-card" type="button" disabled>
+          <button id="open-procurements" class="module-card module-card-procurements" type="button">
+            <span class="module-icon module-icon-procurements" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/><path d="m15 16 2 2 3-4"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Przetargi</strong>
+              <small>Znajdź podobne postępowania i dokumenty</small>
+            </span>
+            <span class="module-state module-state-pilot">Pilot 1.0</span>
+          </button>
+
+          <button id="open-payroll" class="module-card module-card-payroll" type="button">
             <span class="module-icon module-icon-payroll" aria-hidden="true">
               <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><path d="M3 21v-2a5 5 0 0 1 10 0v2M16 6h5m-2.5-2.5v5M16 13h5m-5 4h5m-5 4h3"/></svg>
             </span>
             <span class="module-card-copy">
-              <strong>Kalkulator wynagrodzeń</strong>
-              <small>Godziny, dyżury, nadgodziny i kontrakt</small>
+              <strong>Skutki wzrostu płac</strong>
+              <small>Minimalne stawki · miesiąc, pół roku i rok</small>
             </span>
-            <span class="module-state">Po Gruperze</span>
+            <span class="module-state module-state-seed">Zalążek 0.9</span>
           </button>
 
           <button class="module-card" type="button" disabled>
@@ -94,6 +105,17 @@
               <small>Profile placówek, zakresy i ceny</small>
             </span>
             <span class="module-state">Wkrótce</span>
+          </button>
+
+          <button id="open-cost-accounting" class="module-card module-card-cost-accounting" type="button">
+            <span class="module-icon module-icon-costs" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 8h8M8 12h3m2 0h3m-8 4h3m2 0h3"/></svg>
+            </span>
+            <span class="module-card-copy">
+              <strong>Rachunek kosztów</strong>
+              <small>Rozporządzenie, 20 pytań i materiały AOTMiT</small>
+            </span>
+            <span class="module-state module-state-seed">Zalążek 0.9</span>
           </button>
 
           <button id="open-legislation" class="module-card module-card-legislation" type="button">
@@ -461,6 +483,205 @@
         </details>
       </section>
 
+      <section id="cost-accounting-screen" class="screen knowledge-screen" aria-labelledby="cost-accounting-title" hidden>
+        <section class="knowledge-hero">
+          <span class="home-kicker">Dz.U. 2020 poz. 2045 · akt obowiązujący</span>
+          <h2 id="cost-accounting-title">Rachunek kosztów</h2>
+          <p>Praktyczna wyszukiwarka pełnej treści Standardu Rachunku Kosztów: przepisy, dziewięć załączników, odpowiedzi na najczęstsze pytania i materiały AOTMiT.</p>
+          <a href="https://eli.gov.pl/eli/DU/2020/2045/ogl" target="_blank" rel="noopener">Otwórz pełną treść aktu ↗</a>
+        </section>
+
+        <section class="surface-card knowledge-search-card" aria-labelledby="knowledge-search-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Aktywna baza wiedzy</p>
+              <h2 id="knowledge-search-title">Czego szukasz?</h2>
+            </div>
+            <span id="knowledge-count" class="count-badge">0</span>
+          </div>
+          <label class="knowledge-search-field">
+            <span class="sr-only">Przeszukaj rachunek kosztów</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+            <input id="knowledge-search" type="search" placeholder="Np. OPK, blok operacyjny, apteka, IT…" autocomplete="off">
+          </label>
+          <div id="knowledge-filters" class="knowledge-filters" role="group" aria-label="Zakres bazy wiedzy">
+            <button class="active" type="button" data-knowledge-filter="all" aria-pressed="true">Wszystko</button>
+            <button type="button" data-knowledge-filter="regulation" aria-pressed="false">Rozporządzenie</button>
+            <button type="button" data-knowledge-filter="faq" aria-pressed="false">20 pytań</button>
+          </div>
+          <div id="knowledge-results" class="knowledge-results"></div>
+          <p id="knowledge-empty" class="knowledge-empty" hidden>Nie znaleziono pasującego zagadnienia. Spróbuj krótszego hasła, np. „OPK” albo „procedura”.</p>
+        </section>
+
+        <section class="surface-card knowledge-resources-card" aria-labelledby="knowledge-resources-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Oficjalne materiały</p>
+              <h2 id="knowledge-resources-title">AOTMiT i źródła</h2>
+            </div>
+          </div>
+          <div id="knowledge-resources" class="knowledge-resources"></div>
+        </section>
+
+        <aside class="notice">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>To praktyczne opracowanie, a nie system informacji prawnej. Przy decyzjach księgowych i sprawozdawczych sprawdź pełną treść rozporządzenia oraz aktualne wyjaśnienia AOTMiT.</p>
+        </aside>
+      </section>
+
+      <section id="payroll-screen" class="screen payroll-screen" aria-labelledby="payroll-title" hidden>
+        <section class="payroll-hero">
+          <span class="home-kicker">Zmiana od 1 lipca 2026 r.</span>
+          <h2 id="payroll-title">Skutki wzrostu płac</h2>
+          <p>Wpisz liczbę pełnych etatów w grupach ustawowych. Kalkulator oszacuje zmianę miesięczną, za pół roku i za pełne 12 miesięcy.</p>
+        </section>
+
+        <section class="surface-card payroll-settings-card" aria-labelledby="payroll-settings-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Założenia</p>
+              <h2 id="payroll-settings-title">Kwoty bazowe</h2>
+            </div>
+            <span class="verification-badge">GUS</span>
+          </div>
+          <div class="payroll-settings-grid">
+            <label class="field">
+              <span>Poprzednia podstawa</span>
+              <span class="input-with-unit">
+                <input id="payroll-previous-base" type="number" min="0" step="0.01" inputmode="decimal">
+                <span>zł</span>
+              </span>
+              <small>średnia w gospodarce za 2024 r.</small>
+            </label>
+            <label class="field">
+              <span>Nowa podstawa</span>
+              <span class="input-with-unit">
+                <input id="payroll-current-base" type="number" min="0" step="0.01" inputmode="decimal">
+                <span>zł</span>
+              </span>
+              <small>średnia w gospodarce za 2025 r.</small>
+            </label>
+            <label class="field">
+              <span>Narzuty pracodawcy</span>
+              <span class="input-with-unit">
+                <input id="payroll-oncost" type="number" min="0" max="100" step="0.01" inputmode="decimal">
+                <span>%</span>
+              </span>
+              <small>wartość edytowalna</small>
+            </label>
+          </div>
+          <label class="payroll-oncost-toggle">
+            <input id="payroll-include-oncost" type="checkbox">
+            <span class="toggle-switch" aria-hidden="true"></span>
+            <span>
+              <strong>Uwzględnij narzuty pracodawcy</strong>
+              <small>Po wyłączeniu wynik obejmuje wyłącznie wzrost wynagrodzeń zasadniczych.</small>
+            </span>
+          </label>
+        </section>
+
+        <section class="surface-card payroll-groups-card" aria-labelledby="payroll-groups-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">10 grup ustawowych</p>
+              <h2 id="payroll-groups-title">Liczba pełnych etatów</h2>
+            </div>
+            <span id="payroll-fte-total" class="count-badge">0 etatów</span>
+          </div>
+          <div class="payroll-group-head" aria-hidden="true">
+            <span>Grupa i współczynnik</span>
+            <span>Stare → nowe minimum</span>
+            <span>Etaty</span>
+          </div>
+          <div id="payroll-group-list" class="payroll-group-list"></div>
+          <button id="payroll-reset" class="payroll-reset-button" type="button">Wyczyść kalkulator</button>
+        </section>
+
+        <section class="payroll-results" aria-live="polite">
+          <div class="payroll-results-heading">
+            <div>
+              <p class="eyebrow">Potencjalny efekt</p>
+              <h2 id="payroll-result-mode">Koszt z narzutami pracodawcy</h2>
+            </div>
+            <span id="payroll-result-fte">0 etatów</span>
+          </div>
+          <div class="payroll-result-grid">
+            <article>
+              <span>Miesięcznie</span>
+              <strong id="payroll-monthly-result">0,00 zł</strong>
+            </article>
+            <article>
+              <span>6 miesięcy</span>
+              <strong id="payroll-halfyear-result">0,00 zł</strong>
+            </article>
+            <article>
+              <span>12 miesięcy</span>
+              <strong id="payroll-year-result">0,00 zł</strong>
+            </article>
+          </div>
+          <p id="payroll-result-details">Wzrost wynagrodzeń zasadniczych: 0,00 zł miesięcznie.</p>
+        </section>
+
+        <details class="sources payroll-sources">
+          <summary>Metoda i oficjalne źródła</summary>
+          <div>
+            <p><strong>Wzór:</strong> liczba etatów × współczynnik grupy × różnica kwot bazowych. Narzuty są doliczane według wartości wpisanej przez użytkownika.</p>
+            <p>Kalkulator zakłada przejście każdego wskazanego etatu ze starej minimalnej stawki na nową. Nie uwzględnia indywidualnych wynagrodzeń już wyższych od minimum, dodatków, PPK, ZFŚS ani skutku zmian innych składników płac.</p>
+            <a href="https://eli.gov.pl/eli/DU/2022/2139/ogl" target="_blank" rel="noopener">Ustawa i 10 współczynników pracy</a>
+            <a href="https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2025-r-%2C273%2C13.html" target="_blank" rel="noopener">GUS: przeciętne wynagrodzenie za 2025 r.</a>
+          </div>
+        </details>
+      </section>
+
+      <section id="procurements-screen" class="screen procurements-screen" aria-labelledby="procurements-title" hidden>
+        <section class="procurements-hero">
+          <span class="home-kicker">Publiczne postępowania szpitali</span>
+          <h2 id="procurements-title">Jak zrobiły to inne szpitale?</h2>
+          <p>Wpisz temat, np. „sterylizacja”. HospitalAPP przeszuka ujednolicone rekordy i wskaże dokumenty w oficjalnym źródle.</p>
+        </section>
+
+        <section class="surface-card procurements-search-card" aria-labelledby="procurements-search-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Pierwszy zbiór Data Hub</p>
+              <h2 id="procurements-search-title">Wyszukiwarka przetargów</h2>
+            </div>
+            <span id="procurements-status" class="status-badge">Pilot</span>
+          </div>
+          <form id="procurements-search-form" class="procurements-search-form" role="search">
+            <label>
+              <span class="sr-only">Temat przetargu</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+              <input id="procurements-search" type="search" value="sterylizacja" placeholder="Np. sterylizacja, żywienie, transport…" autocomplete="off">
+            </label>
+            <button type="submit">Szukaj</button>
+          </form>
+          <div class="procurements-meta">
+            <span><strong id="procurements-count">0</strong> wyników</span>
+            <span id="procurements-updated">Ostatnia aktualizacja: —</span>
+          </div>
+        </section>
+
+        <section class="procurements-results-section" aria-labelledby="procurements-results-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Podobne postępowania</p>
+              <h2 id="procurements-results-title">Wyniki</h2>
+            </div>
+          </div>
+          <div id="procurements-results" class="procurements-results" aria-live="polite"></div>
+          <div id="procurements-empty" class="procurements-empty" hidden>
+            <strong>Brak wyników w pilotażowym zbiorze</strong>
+            <p>Wersja 1.0 zawiera pierwsze rekordy sprawdzające architekturę. Automatyczny kolektor BZP zostanie dołączony w kolejnym etapie.</p>
+          </div>
+        </section>
+
+        <aside class="notice procurements-notice">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>To wersja pilotażowa. Rekordy prowadzą do oficjalnych kart e-Zamówienia; wartości i wykonawcy są pokazywani tylko wtedy, gdy zostały jednoznacznie wyodrębnione.</p>
+        </aside>
+      </section>
+
       <section id="legislation-screen" class="screen legislation-screen" aria-labelledby="legislation-title" hidden>
         <section class="legislation-hero">
           <span class="home-kicker">Wyłącznie Ministerstwo Zdrowia</span>
@@ -534,7 +755,7 @@
 
     <footer>
       <span>HospitalAPP</span>
-      <span>v0.8 · wersja robocza</span>
+      <span>v1.0 · Data Hub</span>
     </footer>
   </div>
 
@@ -576,6 +797,9 @@
   <script src="data/jgp-characteristics-14.js" defer></script>
   <script src="data/nfz-contract.js" defer></script>
   <script src="data/nfz-coefficients.js" defer></script>
+  <script src="data/cost-accounting-regulation.js" defer></script>
+  <script src="data/cost-accounting.js" defer></script>
+  <script src="data-hub.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

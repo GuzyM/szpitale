@@ -1,8 +1,8 @@
 # HospitalAPP
 
-HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 0.8 zawiera mobilny Gruper JGP oraz trwały rejestr Legislacji MZ.
+HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 1.0 łączy Gruper JGP, Legislację MZ, Rachunek kosztów, kalkulator skutków wzrostu płac i pierwszy pilot Przetargów ze wspólną warstwą Data Hub.
 
-## Zakres wersji 0.8
+## Zakres wersji 1.0
 
 - osobna strona główna z modułami HospitalAPP,
 - wyszukiwanie w odrębnych trybach: grupa JGP, rozpoznanie ICD-10 i procedura ICD-9,
@@ -22,6 +22,19 @@ HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. We
 - filtry „Tylko nowe” oraz „Tylko ze streszczeniem”,
 - prywatne oznaczenia „Ważne”, „Przeczytane” i „Nie dotyczy mojego szpitala” zapisywane lokalnie,
 - codzienne sprawdzanie źródła legislacja.gov.pl przez GitHub Actions bez OpenAI API,
+- aktywną wyszukiwarkę pełnej treści standardu rachunku kosztów obejmującą § 1–10 i dziewięć załączników rozporządzenia MZ,
+- 20 praktycznych pytań i odpowiedzi opracowanych na podstawie rozporządzenia i oficjalnego FAQ AOTMiT,
+- bezpośrednie linki do webinarów, prezentacji, szablonów i nowego cyklu ABC #SRK,
+- kalkulator skutków zmiany najniższych wynagrodzeń zasadniczych dla 10 ustawowych grup,
+- domyślne podstawy GUS dla zmiany od 1 lipca 2026 r.: 8 181,72 zł → 8 903,56 zł,
+- wyniki kalkulatora miesięczne, półroczne i roczne, z opcjonalnymi narzutami pracodawcy,
+- wspólny manifest zbiorów Data Hub,
+- wersjonowane schematy rekordów przetargowych i finansowych,
+- niewidoczny dla użytkownika klient oddzielający ekrany od miejsca przechowywania danych,
+- paczki JSON przygotowane do późniejszego przeniesienia z GitHuba do magazynu obiektowego lub API,
+- automatyczną walidację paczek, identyfikatorów, linków i zakazu przechowywania surowych dokumentów,
+- działający pilot wyszukiwarki przetargów dla hasła „sterylizacja” z linkami do oficjalnych kart e-Zamówienia,
+- przygotowany kontrakt danych dla wyników finansowych eKRS,
 - działanie offline po pierwszym pełnym uruchomieniu,
 - zapisywanie ustawień i kalkulacji wyłącznie w pamięci urządzenia.
 
@@ -32,23 +45,30 @@ Publiczny katalog placówek w API NFZ nie oznacza automatycznie, że aplikacja z
 - [zarządzenie NFZ 46/2026/DSOZ](https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html),
 - [API Umowy NFZ](https://api.nfz.gov.pl/app-umw-api/),
 - [Informator o umowach NFZ – Małopolska](https://aplikacje.nfz.gov.pl/umowy/Provider/Search?Branch=06),
-- [aktualna macierz łączenia współczynników NFZ](https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/komunikat-dla-swiadczeniodawcow-i-tworcow-oprogramowania%2C8872.html).
+- [aktualna macierz łączenia współczynników NFZ](https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/komunikat-dla-swiadczeniodawcow-i-tworcow-oprogramowania%2C8872.html),
 - [projekty Ministerstwa Zdrowia w Rządowym Procesie Legislacyjnym](https://legislacja.gov.pl/lista?_typeId=1&title=&createDateFrom=&createDateTo=&applicantId=1&number=&_isUEAct=on&_isTKAct=on&_isActEstablishingNumber=on&_isSeparateMode=on&_isDU=on&_isNumerSejm=on#list),
-- [wykaz prac legislacyjnych Ministra Zdrowia](https://www.gov.pl/web/zdrowie/wykaz-prac-legislacyjnych).
+- [wykaz prac legislacyjnych Ministra Zdrowia](https://www.gov.pl/web/zdrowie/wykaz-prac-legislacyjnych),
+- [standard rachunku kosztów – Dz.U. 2020 poz. 2045](https://eli.gov.pl/eli/DU/2020/2045/ogl),
+- [FAQ i materiały SRK AOTMiT](https://www.aotm.gov.pl/standard-rachunku-kosztow/wsparcie-aotmit-w-srk/faq/),
+- [ustawa o najniższych wynagrodzeniach w podmiotach leczniczych](https://eli.gov.pl/eli/DU/2022/2139/ogl),
+- [przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. – GUS](https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2025-r-%2C273%2C13.html).
 
 HospitalAPP nie jest produktem NFZ. Dane źródłowe są oddzielone w interfejsie od założeń i obliczeń użytkownika.
 
 ## Kierunek produktu
 
-HospitalAPP ma docelowo skupiać proste narzędzia dla osób zarządzających szpitalem, oparte na publicznych danych i jednoznacznie opisanych założeniach. Kolejność rozwoju:
+HospitalAPP ma docelowo odpowiadać na pytanie „Jak zrobiły to inne szpitale?” na podstawie największego w Polsce, ujednoliconego zbioru publicznych danych przydatnych w zarządzaniu szpitalami.
 
-1. dopracowanie Grupera JGP,
-2. kalkulator wynagrodzeń medycznych: stawki godzinowe, nocne, dyżurowe i nadgodziny, netto, brutto, pełny koszt pracodawcy oraz porównanie umowy o pracę z kontraktem,
-3. analiza wyników i rachunek kosztów,
-4. programy naprawcze,
-5. dalsza rozbudowa monitora legislacji i komunikatów branżowych.
+Kolejność rozwoju:
 
-Kafelki przyszłych modułów są wyłącznie zapowiedzią. Nie prezentują obliczeń, dopóki reguły prawne, podatkowe i źródła danych nie zostaną zweryfikowane oraz opatrzone datą obowiązywania.
+1. regularny kolektor BZP i uzupełnianie wartości, wykonawców oraz typów dokumentów,
+2. parser sprawozdań eKRS i pierwsze benchmarki wyników finansowych,
+3. TED, AOTMiT oraz wybrane BIP szpitali,
+4. kontrolowane streszczenia AI i odpowiedzi przekrojowe,
+5. magazyn dużych paczek poza GitHubem,
+6. Supabase w wersji 2.0 dla kont, synchronizacji i danych prywatnych.
+
+Szczegóły techniczne i instrukcja rozwoju: [docs/data-hub-v1.md](docs/data-hub-v1.md).
 
 ## Uruchomienie lokalne
 
@@ -94,4 +114,10 @@ Pięciozdaniowe streszczenia mają osobny status `pending` albo `ready`. GitHub 
 
 ```bash
 npm test
+```
+
+Samą warstwę Data Hub można sprawdzić poleceniem:
+
+```bash
+npm run validate:data-hub
 ```

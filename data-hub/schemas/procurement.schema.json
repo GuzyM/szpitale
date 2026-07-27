@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hospitalapp.pl/schemas/procurement.schema.json",
+  "title": "HospitalAPP procurement record",
+  "type": "object",
+  "required": [
+    "id",
+    "hospital",
+    "subject",
+    "status",
+    "dates",
+    "value",
+    "contractor",
+    "documents",
+    "source",
+    "aiSummary"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+:"
+    },
+    "hospital": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "krs": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "regon": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 3
+    },
+    "referenceNumber": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "category": {
+      "type": "string"
+    },
+    "cpv": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string"
+    },
+    "dates": {
+      "type": "object",
+      "required": [
+        "published"
+      ],
+      "properties": {
+        "published": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "updated": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "awarded": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      },
+      "additionalProperties": false
+    },
+    "value": {
+      "type": "object",
+      "required": [
+        "amount",
+        "currency",
+        "kind",
+        "status"
+      ],
+      "properties": {
+        "amount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "PLN",
+            "EUR"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "estimated",
+            "award",
+            "unknown"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "not-extracted",
+            "not-published"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contractor": {
+      "type": "object",
+      "required": [
+        "name",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "not-extracted",
+            "not-awarded"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "url",
+          "availability"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "swz",
+              "draft-contract",
+              "questions-and-answers",
+              "award",
+              "source"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "direct-link",
+              "source-page"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "system",
+        "sourceId",
+        "url",
+        "retrievedAt"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "aiSummary": {
+      "type": "object",
+      "required": [
+        "status",
+        "text",
+        "generatedAt",
+        "model",
+        "basedOn"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "ready",
+            "review-required"
+          ]
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "generatedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "basedOn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

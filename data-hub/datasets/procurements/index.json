@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "procurements",
+  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "recordCount": 3,
+  "partitionStrategy": "year",
+  "partitions": [
+    {
+      "id": "2022",
+      "path": "./data-hub/datasets/procurements/shards/2022.json",
+      "recordCount": 1,
+      "immutable": true
+    },
+    {
+      "id": "2025",
+      "path": "./data-hub/datasets/procurements/shards/2025.json",
+      "recordCount": 2,
+      "immutable": false
+    }
+  ]
+}
