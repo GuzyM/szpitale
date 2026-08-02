@@ -12,6 +12,17 @@ SPEC.loader.exec_module(MODULE)
 
 
 class LegislationSyncTests(unittest.TestCase):
+    def test_request_uses_resilient_curl_path(self):
+        result = mock.Mock(
+            returncode=0,
+            stdout="<html>Projekt MZ</html>".encode(),
+            stderr=b"",
+        )
+        with mock.patch.object(MODULE.subprocess, "run", return_value=result) as run:
+            text = MODULE.request_text("https://legislacja.gov.pl/lista", 10)
+        self.assertIn("Projekt MZ", text)
+        self.assertIn("--retry-all-errors", run.call_args.args[0])
+
     def test_extracts_anchor_and_embedded_project_urls(self):
         html = """
         <a href="/projekt/12345">Projekt ustawy o jakości</a>

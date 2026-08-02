@@ -27,9 +27,15 @@
         <p id="topbar-eyebrow" class="eyebrow">Centrum analityki szpitalnej</p>
         <h1 id="topbar-title">HospitalAPP</h1>
       </div>
-      <button id="install-help-button" class="icon-button" type="button" aria-label="Jak zainstalować aplikację" title="Instalacja na iPhone">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
-      </button>
+      <div class="topbar-actions">
+        <button id="notes-button" class="icon-button notes-button" type="button" aria-label="Dodaj uwagę" title="Moje uwagi">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v12H9l-4 4V4Z"/><path d="M8 8h8M8 12h5"/></svg>
+          <span id="notes-count" class="notes-count" hidden>0</span>
+        </button>
+        <button id="install-help-button" class="icon-button" type="button" aria-label="Jak zainstalować aplikację" title="Instalacja na iPhone">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+        </button>
+      </div>
     </header>
 
     <main>
@@ -43,6 +49,18 @@
             <span id="home-data-label">Aktualne dane JGP</span>
           </div>
         </section>
+
+        <button id="open-key-change" class="key-change-card" type="button">
+          <span class="key-change-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 4.8 3 8.3 8 10 5-1.7 8-5.2 8-10V7l-8-4Z"/><path d="M12 7v6m0 3h.01"/></svg>
+          </span>
+          <span class="key-change-card-copy">
+            <small>UWAGA · KLUCZOWA ZMIANA · PROJEKT UD439</small>
+            <strong>Nowe zasady zatrudniania i wynagrodzeń medyków</strong>
+            <span>Limity stawek, etaty, drugi szpital, kontrole NFZ i SRK — w jednym zarządczym podsumowaniu.</span>
+          </span>
+          <span class="key-change-card-arrow" aria-hidden="true">→</span>
+        </button>
 
         <div class="dashboard-heading">
           <div>
@@ -71,7 +89,7 @@
               <strong>Analiza wyników</strong>
               <small>Przychody, wykonanie i odchylenia</small>
             </span>
-            <span class="module-state">Wkrótce</span>
+            <span class="module-state">Pełna wersja wkrótce</span>
           </button>
 
           <button id="open-procurements" class="module-card module-card-procurements" type="button">
@@ -80,9 +98,9 @@
             </span>
             <span class="module-card-copy">
               <strong>Przetargi</strong>
-              <small>Znajdź podobne postępowania i dokumenty</small>
+              <small>Postępowania szpitali klinicznych</small>
             </span>
-            <span class="module-state module-state-pilot">Pilot 1.0</span>
+            <span class="module-state module-state-pilot">Wersja testowa</span>
           </button>
 
           <button id="open-payroll" class="module-card module-card-payroll" type="button">
@@ -93,18 +111,17 @@
               <strong>Skutki wzrostu płac</strong>
               <small>Minimalne stawki · miesiąc, pół roku i rok</small>
             </span>
-            <span class="module-state module-state-seed">Zalążek 0.9</span>
           </button>
 
-          <button class="module-card" type="button" disabled>
+          <button id="open-nfz-services" class="module-card module-card-nfz-services" type="button">
             <span class="module-icon module-icon-purple" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M4 20h16M6 17V8h12v9M9 8V5h6v3M9 12h2m2 0h2m-6 3h2m2 0h2"/></svg>
             </span>
             <span class="module-card-copy">
-              <strong>Umowy NFZ</strong>
-              <small>Profile placówek, zakresy i ceny</small>
+              <strong>Świadczenia NFZ</strong>
+              <small>JGP i katalog świadczeń poza JGP</small>
             </span>
-            <span class="module-state">Wkrótce</span>
+            <span class="module-state">Wersja testowa</span>
           </button>
 
           <button id="open-cost-accounting" class="module-card module-card-cost-accounting" type="button">
@@ -115,7 +132,6 @@
               <strong>Rachunek kosztów</strong>
               <small>Rozporządzenie, 20 pytań i materiały AOTMiT</small>
             </span>
-            <span class="module-state module-state-seed">Zalążek 0.9</span>
           </button>
 
           <button id="open-legislation" class="module-card module-card-legislation" type="button">
@@ -126,7 +142,6 @@
               <strong>Legislacja MZ</strong>
               <small>Projekty i akty ze źródeł Ministerstwa Zdrowia</small>
             </span>
-            <span class="module-state module-state-live">Działa</span>
           </button>
         </nav>
 
@@ -182,6 +197,17 @@
           </div>
           <p id="provider-help" class="provider-help">Ten profil jest publicznym wycinkiem umowy. Zmiana placówki zmienia dostępne zakresy i ceny.</p>
         </section>
+
+        <aside class="catalog-update-card" aria-label="Aktualność katalogu JGP">
+          <span class="catalog-update-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.4 6.4L4 9m16 6-2.4 2.6A7 7 0 0 1 5.5 15"/></svg>
+          </span>
+          <span>
+            <strong>Katalog JGP · 46/2026/DSOZ</strong>
+            <small>702 grupy i pełna charakterystyka. Automatyczne wykrywanie nowej wersji: <b>wersja testowa — pełne bezobsługowe wczytanie po kontroli danych już wkrótce.</b></small>
+          </span>
+          <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Źródło NFZ ↗</a>
+        </aside>
 
         <section class="search-section" aria-labelledby="search-label">
           <div class="section-heading">
@@ -483,6 +509,159 @@
         </details>
       </section>
 
+      <section id="key-change-screen" class="screen key-change-screen" aria-labelledby="key-change-title" hidden>
+        <section class="key-change-hero">
+          <div class="key-change-status-row">
+            <span class="home-kicker">Kluczowa zmiana · UD439</span>
+            <span class="project-status-badge">Projekt · nie obowiązuje</span>
+          </div>
+          <h2 id="key-change-title">Nowe zasady zatrudniania i wynagrodzeń medyków</h2>
+          <p>Najważniejsze skutki projektu dla zarządu, HR, finansów, kierowników medycznych i zespołu rachunku kosztów.</p>
+          <dl class="key-change-meta">
+            <div>
+              <dt>Pierwsza publikacja</dt>
+              <dd>21.07.2026</dd>
+            </div>
+            <div>
+              <dt>Plan RM</dt>
+              <dd>III kwartał 2026</dd>
+            </div>
+            <div>
+              <dt>Umowy do przeglądu</dt>
+              <dd>przed 31.12.2026*</dd>
+            </div>
+          </dl>
+        </section>
+
+        <aside class="project-warning">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p><strong>To jeszcze nie jest prawo.</strong> Daty i obowiązki poniżej wynikają z wersji projektu sprawdzonej 2.08.2026 i mogą zmienić się w toku prac. Gwiazdka przy 31.12.2026 oznacza termin wygaśnięcia niezgodnych umów tylko wtedy, gdy projekt zostanie uchwalony w obecnym kształcie.</p>
+        </aside>
+
+        <section class="key-figures" aria-labelledby="key-figures-title">
+          <div class="key-figures-heading">
+            <div>
+              <p class="eyebrow">Skala finansowa</p>
+              <h2 id="key-figures-title">Limity według projektu</h2>
+            </div>
+            <label class="key-minimum-wage">
+              <span>Minimalne wynagrodzenie</span>
+              <span class="input-with-unit">
+                <input id="key-minimum-wage" type="number" min="0" step="1" inputmode="decimal" value="4806">
+                <span>zł</span>
+              </span>
+            </label>
+          </div>
+          <div class="key-figure-grid">
+            <article>
+              <span>Stawka godzinowa</span>
+              <strong id="key-hourly-limit">—</strong>
+              <small>1/20 minimum</small>
+            </article>
+            <article>
+              <span>1 pełny etat</span>
+              <strong id="key-monthly-limit">—</strong>
+              <small>8 × minimum</small>
+            </article>
+            <article>
+              <span>Łączny limit</span>
+              <strong id="key-total-limit">—</strong>
+              <small>16 × minimum</small>
+            </article>
+          </div>
+          <p class="key-figures-note">Dla 2026 r. projekt odwołuje się do minimalnego wynagrodzenia 4 806 zł. Kwota 16 × wynosi matematycznie 76 896 zł; w opisie rządowym pojawia się zaokrąglony przykład 76 800 zł.</p>
+        </section>
+
+        <section aria-labelledby="key-change-tiles-title">
+          <div class="section-heading key-change-section-heading">
+            <div>
+              <p class="eyebrow">Podsumowanie zarządcze</p>
+              <h2 id="key-change-tiles-title">Co dokładnie ma się zmienić?</h2>
+            </div>
+          </div>
+          <div id="key-change-tiles" class="key-change-tiles"></div>
+        </section>
+
+        <section class="surface-card key-actions-card" aria-labelledby="key-actions-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Plan dla szpitala</p>
+              <h2 id="key-actions-title">Co przygotować już teraz?</h2>
+            </div>
+            <span class="count-badge">6</span>
+          </div>
+          <ol id="key-change-actions" class="key-change-actions"></ol>
+        </section>
+
+        <details class="key-interpretation">
+          <summary>Ważna interpretacja: co z prywatnymi świadczeniami?</summary>
+          <div>
+            <p>Projekt wiąże limity wynagrodzenia z zapłatą za świadczenia objęte umową z NFZ. Nie ustanawia prostego limitu wszystkich prywatnych dochodów medyka. Jednocześnie limit łącznego wymiaru zatrudnienia oraz nowe uprawnienia NFZ do pozyskiwania harmonogramów od podmiotów bez kontraktu mogą mieć znaczenie dla oceny rzeczywistej dostępności personelu.</p>
+            <p>To obszar wymagający ponownej oceny po każdej zmianie projektu i po opublikowaniu ostatecznego tekstu ustawy.</p>
+          </div>
+        </details>
+
+        <div class="key-change-sources">
+          <a id="key-change-source" href="https://www.gov.pl/web/premier/projekt-ustawy-o-zmianie-ustawy-o-swiadczeniach-opieki-zdrowotnej-finansowanych-ze-srodkow-publicznych-oraz-niektorych-innych-ustaw28" target="_blank" rel="noopener">Wykaz prac Rady Ministrów ↗</a>
+          <a id="key-change-project" href="https://legislacja.gov.pl/projekt/12412802" target="_blank" rel="noopener">Pełny projekt w RCL ↗</a>
+        </div>
+      </section>
+
+      <section id="nfz-services-screen" class="screen nfz-services-screen" aria-labelledby="nfz-services-title" hidden>
+        <section class="nfz-services-hero">
+          <div class="key-change-status-row">
+            <span class="home-kicker">Wspólny katalog rozliczeń</span>
+            <span class="test-status-badge">Wersja testowa · pełna wkrótce</span>
+          </div>
+          <h2 id="nfz-services-title">Świadczenia NFZ poza JGP</h2>
+          <p>JGP pozostaje jednym katalogiem. Pozostałych produktów nie mieszamy z nim w jednym algorytmie — każdy obszar dostanie własne reguły, wyszukiwarkę i źródło.</p>
+        </section>
+
+        <section class="nfz-service-grid" aria-label="Planowane katalogi świadczeń NFZ">
+          <article class="nfz-service-card is-ready">
+            <span>JGP</span>
+            <h3>Leczenie szpitalne</h3>
+            <p>702 grupy, warunki ICD, punktacja, profile umów i współczynniki.</p>
+            <button id="open-jgp-from-services" type="button">Otwórz działający Gruper →</button>
+          </article>
+          <article class="nfz-service-card">
+            <span>Test</span>
+            <h3>Produkty odrębne</h3>
+            <p>Katalog produktów rozliczanych poza grupą JGP, z własną punktacją i warunkami.</p>
+            <small>Pełna wersja wkrótce</small>
+          </article>
+          <article class="nfz-service-card">
+            <span>Test</span>
+            <h3>Produkty do sumowania</h3>
+            <p>Dodatkowe produkty możliwe do rozliczenia razem z hospitalizacją lub poradą.</p>
+            <small>Pełna wersja wkrótce</small>
+          </article>
+          <article class="nfz-service-card">
+            <span>Test</span>
+            <h3>AOS</h3>
+            <p>Porady, badania, ambulatoryjne świadczenia specjalistyczne i zasady łączenia.</p>
+            <small>Pełna wersja wkrótce</small>
+          </article>
+          <article class="nfz-service-card">
+            <span>Test</span>
+            <h3>OAiIT, rehabilitacja i psychiatria</h3>
+            <p>Osobodni, skale, zakresy i produkty wymagające odrębnego sposobu kalkulacji.</p>
+            <small>Pełna wersja wkrótce</small>
+          </article>
+          <article class="nfz-service-card">
+            <span>Test</span>
+            <h3>Chemioterapia i programy lekowe</h3>
+            <p>Świadczenia, leki, substancje i produkty towarzyszące rozdzielone od JGP.</p>
+            <small>Pełna wersja wkrótce</small>
+          </article>
+        </section>
+
+        <aside class="notice">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>Ten ekran pokazuje docelowy podział i zapobiega błędnemu traktowaniu wszystkich świadczeń jak JGP. Dziś w pełni działa wyłącznie katalog JGP; pozostałe obszary są jawnie oznaczone jako testowe.</p>
+        </aside>
+      </section>
+
       <section id="cost-accounting-screen" class="screen knowledge-screen" aria-labelledby="cost-accounting-title" hidden>
         <section class="knowledge-hero">
           <span class="home-kicker">Dz.U. 2020 poz. 2045 · akt obowiązujący</span>
@@ -635,18 +814,18 @@
 
       <section id="procurements-screen" class="screen procurements-screen" aria-labelledby="procurements-title" hidden>
         <section class="procurements-hero">
-          <span class="home-kicker">Publiczne postępowania szpitali</span>
+          <span class="home-kicker">Wyłącznie szpitale kliniczne i uniwersyteckie</span>
           <h2 id="procurements-title">Jak zrobiły to inne szpitale?</h2>
-          <p>Wpisz temat, np. „sterylizacja”. HospitalAPP przeszuka ujednolicone rekordy i wskaże dokumenty w oficjalnym źródle.</p>
+          <p>Wpisz temat, np. „sterylizacja”. HospitalAPP przeszuka ujednolicone rekordy szpitali klinicznych i wskaże dokumenty w oficjalnym źródle.</p>
         </section>
 
         <section class="surface-card procurements-search-card" aria-labelledby="procurements-search-title">
           <div class="section-heading compact">
             <div>
-              <p class="eyebrow">Pierwszy zbiór Data Hub</p>
+              <p class="eyebrow">Pierwszy zbiór Data Hub · tylko szpitale kliniczne</p>
               <h2 id="procurements-search-title">Wyszukiwarka przetargów</h2>
             </div>
-            <span id="procurements-status" class="status-badge">Pilot</span>
+            <span id="procurements-status" class="status-badge">Wersja testowa</span>
           </div>
           <form id="procurements-search-form" class="procurements-search-form" role="search">
             <label>
@@ -671,14 +850,14 @@
           </div>
           <div id="procurements-results" class="procurements-results" aria-live="polite"></div>
           <div id="procurements-empty" class="procurements-empty" hidden>
-            <strong>Brak wyników w pilotażowym zbiorze</strong>
-            <p>Wersja 1.0 zawiera pierwsze rekordy sprawdzające architekturę. Automatyczny kolektor BZP zostanie dołączony w kolejnym etapie.</p>
+            <strong>Brak wyników w testowym zbiorze</strong>
+            <p>Obecny zbiór sprawdza architekturę i obejmuje tylko szpitale kliniczne. Pełny automatyczny kolektor BZP pojawi się wkrótce.</p>
           </div>
         </section>
 
         <aside class="notice procurements-notice">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-          <p>To wersja pilotażowa. Rekordy prowadzą do oficjalnych kart e-Zamówienia; wartości i wykonawcy są pokazywani tylko wtedy, gdy zostały jednoznacznie wyodrębnione.</p>
+          <p><strong>Wersja testowa — pełna wkrótce.</strong> Rekordy prowadzą do oficjalnych kart postępowań; wartości i wykonawcy są pokazywani tylko wtedy, gdy zostały jednoznacznie wyodrębnione.</p>
         </aside>
       </section>
 
@@ -715,7 +894,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.4 6.4L4 9m16 6-2.4 2.6A7 7 0 0 1 5.5 15"/></svg>
             Pobierz najnowszą listę
           </button>
-          <p class="legislation-auto-note">GitHub sprawdza Rządowy Proces Legislacyjny codziennie o 06:17. Przycisk pobiera najnowszy zapisany rejestr; nie zużywa tokenów ChatGPT.</p>
+          <p id="legislation-freshness-note" class="legislation-auto-note">GitHub sprawdza Rządowy Proces Legislacyjny dwa razy dziennie. Przycisk pobiera najnowszy zapisany rejestr; nie zużywa tokenów ChatGPT.</p>
         </section>
 
         <section class="surface-card legislation-list-card" aria-labelledby="legislation-list-title">
@@ -755,7 +934,7 @@
 
     <footer>
       <span>HospitalAPP</span>
-      <span>v1.0 · Data Hub</span>
+      <span>Publiczna beta · Data Hub</span>
     </footer>
   </div>
 
@@ -774,6 +953,35 @@
       <button class="primary-button" value="close">Rozumiem</button>
     </form>
   </dialog>
+
+  <dialog id="notes-dialog" class="notes-dialog">
+    <div class="notes-dialog-panel">
+      <div class="dialog-handle" aria-hidden="true"></div>
+      <div class="notes-dialog-heading">
+        <div>
+          <p class="eyebrow">Tylko na tym urządzeniu</p>
+          <h2>Moje uwagi</h2>
+        </div>
+        <button id="notes-close" class="notes-close" type="button" aria-label="Zamknij uwagi">×</button>
+      </div>
+      <span id="notes-context" class="notes-context">Ekran główny</span>
+      <label class="notes-input-field">
+        <span>Dodaj uwagę do tego miejsca</span>
+        <textarea id="notes-input" rows="4" maxlength="1200" placeholder="Np. dodać filtr, zmienić opis, sprawdzić źródło…"></textarea>
+      </label>
+      <button id="notes-save" class="notes-save" type="button">Zapisz uwagę</button>
+      <section class="notes-saved" aria-labelledby="notes-saved-title">
+        <div class="notes-saved-heading">
+          <h3 id="notes-saved-title">Zapisane</h3>
+          <span id="notes-saved-count">0</span>
+        </div>
+        <div id="notes-list" class="notes-list"></div>
+        <p id="notes-empty" class="notes-empty">Nie masz jeszcze zapisanych uwag.</p>
+      </section>
+    </div>
+  </dialog>
+
+  <p id="app-toast" class="app-toast" role="status" aria-live="polite" hidden></p>
 
   <script src="data/jgp-data-meta.js" defer></script>
   <script src="data/jgp-data-01.js" defer></script>
@@ -799,6 +1007,7 @@
   <script src="data/nfz-coefficients.js" defer></script>
   <script src="data/cost-accounting-regulation.js" defer></script>
   <script src="data/cost-accounting.js" defer></script>
+  <script src="data/key-change.js" defer></script>
   <script src="data-hub.js" defer></script>
   <script src="app.js" defer></script>
 </body>

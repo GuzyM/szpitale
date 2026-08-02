@@ -1,26 +1,27 @@
 {
   "schemaVersion": "1.0.0",
   "dataset": "procurements",
-  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "generatedAt": "2026-07-31T01:20:00+02:00",
   "partition": {
     "key": "2025",
     "immutable": false
   },
   "records": [
     {
-      "id": "bzp:ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
+      "id": "bzp:platformazakupowa-1223778",
       "hospital": {
-        "name": "Szpital Tucholski Sp. z o.o.",
+        "name": "Szpital Uniwersytecki w Krakowie",
+        "kind": "clinical",
         "krs": null,
         "regon": null
       },
-      "subject": "Świadczenie usług sterylizacji narzędzi i sprzętu medycznego wraz z transportem",
-      "referenceNumber": null,
+      "subject": "Kompleksowe mycie, dezynfekcja i sterylizacja narzędzi medycznych oraz bieżąca konserwacja sprzętu",
+      "referenceNumber": "DFP.271.265.2025.KK",
       "category": "Usługi sterylizacji",
       "cpv": [],
       "status": "Postępowanie opublikowane",
       "dates": {
-        "published": "2025-01-29",
+        "published": "2025-12-10",
         "updated": null,
         "awarded": null
       },
@@ -38,27 +39,33 @@
         {
           "type": "swz",
           "title": "SWZ i załączniki – karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
+          "url": "https://platformazakupowa.pl/transakcja/1223778",
           "availability": "source-page"
         },
         {
           "type": "draft-contract",
           "title": "Projekt umowy – karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
+          "url": "https://platformazakupowa.pl/transakcja/1223778",
+          "availability": "source-page"
+        },
+        {
+          "type": "questions-and-answers",
+          "title": "Pytania i odpowiedzi – karta postępowania",
+          "url": "https://platformazakupowa.pl/transakcja/1223778",
           "availability": "source-page"
         },
         {
           "type": "source",
           "title": "Pełna karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
+          "url": "https://platformazakupowa.pl/transakcja/1223778",
           "availability": "source-page"
         }
       ],
       "source": {
-        "system": "BZP / e-Zamówienia",
-        "sourceId": "ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
-        "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-c3c8b13d-4d82-4c82-879f-503e9ec81cb3",
-        "retrievedAt": "2026-07-25T00:00:00+02:00"
+        "system": "Platforma Zakupowa / BZP",
+        "sourceId": "1223778",
+        "url": "https://platformazakupowa.pl/transakcja/1223778",
+        "retrievedAt": "2026-07-31T01:20:00+02:00"
       },
       "aiSummary": {
         "status": "pending",
@@ -69,19 +76,20 @@
       }
     },
     {
-      "id": "bzp:ocds-148610-f585c178-3d06-4dc2-8ee3-15a54fc8a0b4",
+      "id": "bzp:platformazakupowa-1160458",
       "hospital": {
-        "name": "Szpital Specjalistyczny w Zabrzu Sp. z o.o.",
+        "name": "Ortopedyczno-Rehabilitacyjny Szpital Kliniczny im. Wiktora Degi Uniwersytetu Medycznego w Poznaniu",
+        "kind": "clinical",
         "krs": null,
         "regon": null
       },
-      "subject": "Dostawa materiałów do sterylizacji dla Szpitala Specjalistycznego w Zabrzu",
-      "referenceNumber": "DZP/29 TP/2025",
+      "subject": "Dostawa materiałów do sterylizacji „2”",
+      "referenceNumber": "DZP/APT/39/2025",
       "category": "Materiały do sterylizacji",
       "cpv": [],
-      "status": "Zakończone – zawarta umowa",
+      "status": "Postępowanie opublikowane",
       "dates": {
-        "published": null,
+        "published": "2025-08-14",
         "updated": null,
         "awarded": null
       },
@@ -98,22 +106,28 @@
       "documents": [
         {
           "type": "swz",
-          "title": "SWZ DZP/29 TP/2025 – karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-f585c178-3d06-4dc2-8ee3-15a54fc8a0b4",
+          "title": "SWZ i formularz asortymentowo-cenowy",
+          "url": "https://platformazakupowa.pl/transakcja/1160458",
+          "availability": "source-page"
+        },
+        {
+          "type": "draft-contract",
+          "title": "Projektowane postanowienia umowy",
+          "url": "https://platformazakupowa.pl/transakcja/1160458",
           "availability": "source-page"
         },
         {
           "type": "source",
           "title": "Pełna karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-f585c178-3d06-4dc2-8ee3-15a54fc8a0b4",
+          "url": "https://platformazakupowa.pl/transakcja/1160458",
           "availability": "source-page"
         }
       ],
       "source": {
-        "system": "BZP / e-Zamówienia",
-        "sourceId": "ocds-148610-f585c178-3d06-4dc2-8ee3-15a54fc8a0b4",
-        "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-f585c178-3d06-4dc2-8ee3-15a54fc8a0b4",
-        "retrievedAt": "2026-07-25T00:00:00+02:00"
+        "system": "Platforma Zakupowa / BZP",
+        "sourceId": "1160458",
+        "url": "https://platformazakupowa.pl/transakcja/1160458",
+        "retrievedAt": "2026-07-31T01:20:00+02:00"
       },
       "aiSummary": {
         "status": "pending",

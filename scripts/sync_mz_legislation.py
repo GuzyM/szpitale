@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from html import unescape
@@ -60,6 +61,48 @@ class LinkParser(HTMLParser):
 
 
 def request_text(url: str, timeout: int) -> str:
+    curl_error: str | None = None
+    try:
+        result = subprocess.run(
+            [
+                "curl",
+                "--fail",
+                "--location",
+                "--compressed",
+                "--silent",
+                "--show-error",
+                "--retry",
+                "2",
+                "--retry-delay",
+                "2",
+                "--retry-all-errors",
+                "--connect-timeout",
+                str(min(timeout, 12)),
+                "--max-time",
+                str(timeout),
+                "--max-filesize",
+                str(MAX_PAGE_BYTES),
+                "--user-agent",
+                USER_AGENT,
+                "--header",
+                "Accept: text/html,application/xhtml+xml,application/json",
+                url,
+            ],
+            check=False,
+            capture_output=True,
+            timeout=timeout + 10,
+        )
+        if result.returncode == 0 and result.stdout:
+            if len(result.stdout) > MAX_PAGE_BYTES:
+                raise RuntimeError(f"Strona jest za duża: {url}")
+            return result.stdout.decode("utf-8", errors="replace")
+        curl_error = result.stderr.decode("utf-8", errors="replace").strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
+        curl_error = str(error)
+
+    # Awaryjnie zachowujemy standardową bibliotekę Pythona. RCL miewa okresowe
+    # problemy z jednym ze sposobów zestawiania połączenia, dlatego dwie
+    # niezależne ścieżki chronią aktualizację przed cichym zatrzymaniem.
     request = Request(
         url,
         headers={
@@ -67,16 +110,20 @@ def request_text(url: str, timeout: int) -> str:
             "Accept": "text/html,application/xhtml+xml,application/json",
         },
     )
-    with urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise RuntimeError(f"HTTP {response.status} dla {url}")
-        length = response.headers.get("Content-Length")
-        if length and int(length) > MAX_PAGE_BYTES:
-            raise RuntimeError(f"Strona jest za duża: {url}")
-        data = response.read(MAX_PAGE_BYTES + 1)
-        if len(data) > MAX_PAGE_BYTES:
-            raise RuntimeError(f"Strona jest za duża: {url}")
-        content_type = response.headers.get("Content-Type", "")
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            if response.status != 200:
+                raise RuntimeError(f"HTTP {response.status} dla {url}")
+            length = response.headers.get("Content-Length")
+            if length and int(length) > MAX_PAGE_BYTES:
+                raise RuntimeError(f"Strona jest za duża: {url}")
+            data = response.read(MAX_PAGE_BYTES + 1)
+            if len(data) > MAX_PAGE_BYTES:
+                raise RuntimeError(f"Strona jest za duża: {url}")
+            content_type = response.headers.get("Content-Type", "")
+    except Exception as error:
+        detail = f"; curl: {curl_error}" if curl_error else ""
+        raise RuntimeError(f"Nie udało się pobrać {url}: {error}{detail}") from error
     charset = "utf-8"
     match = re.search(r"charset=([\w-]+)", content_type, re.I)
     if match:

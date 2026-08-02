@@ -1,13 +1,14 @@
 # HospitalAPP
 
-HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. Wersja 1.0 łączy Gruper JGP, Legislację MZ, Rachunek kosztów, kalkulator skutków wzrostu płac i pierwszy pilot Przetargów ze wspólną warstwą Data Hub.
+HospitalAPP to instalowalna na ekranie początkowym iPhone’a publiczna beta PWA. Wersja 1.1 łączy panel kluczowej zmiany UD439, Gruper JGP, Legislację MZ, Rachunek kosztów, kalkulator skutków wzrostu płac, testowy katalog świadczeń NFZ i pilot Przetargów ze wspólną warstwą Data Hub.
 
-## Zakres wersji 1.0
+## Zakres wersji 1.1
 
 - osobna strona główna z modułami HospitalAPP,
 - wyszukiwanie w odrębnych trybach: grupa JGP, rozpoznanie ICD-10 i procedura ICD-9,
 - 702 grupy JGP oraz 35 060 pozycji ICD z oficjalnych załączników 1a i 9 do zarządzenia NFZ 46/2026/DSOZ z 30.04.2026 r.,
 - czytelne ścieżki grupowania oraz rozwijane listy wymaganych procedur i rozpoznań,
+- klikalne znaczniki ścieżek, które otwierają i podświetlają właściwą listę ICD,
 - wartości punktowe, zakresy świadczeń, dni finansowane grupą i osobodzień ponad ryczałt,
 - zanonimizowany profil referencyjny z kodem zakresu, produktem jednostkowym, okresem i średnią ceną punktu z API Umowy NFZ,
 - profil własnej placówki zapisywany lokalnie,
@@ -21,19 +22,24 @@ HospitalAPP to instalowalna na ekranie początkowym iPhone’a aplikacja PWA. We
 - status ostatniej aktualizacji, liczba wszystkich projektów i liczba nowych pozycji,
 - filtry „Tylko nowe” oraz „Tylko ze streszczeniem”,
 - prywatne oznaczenia „Ważne”, „Przeczytane” i „Nie dotyczy mojego szpitala” zapisywane lokalnie,
-- codzienne sprawdzanie źródła legislacja.gov.pl przez GitHub Actions bez OpenAI API,
+- dwukrotne w ciągu doby sprawdzanie źródła legislacja.gov.pl przez GitHub Actions bez OpenAI API,
+- jawny status opóźnienia, gdy rejestr nie został skutecznie odświeżony od ponad 36 godzin,
 - aktywną wyszukiwarkę pełnej treści standardu rachunku kosztów obejmującą § 1–10 i dziewięć załączników rozporządzenia MZ,
 - 20 praktycznych pytań i odpowiedzi opracowanych na podstawie rozporządzenia i oficjalnego FAQ AOTMiT,
 - bezpośrednie linki do webinarów, prezentacji, szablonów i nowego cyklu ABC #SRK,
 - kalkulator skutków zmiany najniższych wynagrodzeń zasadniczych dla 10 ustawowych grup,
 - domyślne podstawy GUS dla zmiany od 1 lipca 2026 r.: 8 181,72 zł → 8 903,56 zł,
 - wyniki kalkulatora miesięczne, półroczne i roczne, z opcjonalnymi narzutami pracodawcy,
+- rozwijany ustawowy skład każdej grupy zawodowej,
+- panel „Kluczowa zmiana” dla projektu UD439 z dziewięcioma kafelkami zarządczymi, przelicznikami i checklistą przygotowawczą,
+- prywatny notatnik uwag zapisujący kontekst bieżącego modułu wyłącznie na urządzeniu,
+- testowy katalog świadczeń poza JGP z uczciwie opisanym zakresem dalszego uzupełniania,
 - wspólny manifest zbiorów Data Hub,
 - wersjonowane schematy rekordów przetargowych i finansowych,
 - niewidoczny dla użytkownika klient oddzielający ekrany od miejsca przechowywania danych,
 - paczki JSON przygotowane do późniejszego przeniesienia z GitHuba do magazynu obiektowego lub API,
 - automatyczną walidację paczek, identyfikatorów, linków i zakazu przechowywania surowych dokumentów,
-- działający pilot wyszukiwarki przetargów dla hasła „sterylizacja” z linkami do oficjalnych kart e-Zamówienia,
+- działający pilot wyszukiwarki przetargów dotyczący wyłącznie szpitali klinicznych i uniwersyteckich, z linkami do oficjalnych kart postępowań,
 - przygotowany kontrakt danych dla wyników finansowych eKRS,
 - działanie offline po pierwszym pełnym uruchomieniu,
 - zapisywanie ustawień i kalkulacji wyłącznie w pamięci urządzenia.
@@ -82,13 +88,7 @@ Następnie otwórz `http://localhost:8080`. Service worker i instalacja PWA wyma
 
 ## Aktualizacja danych JGP
 
-Po pobraniu nowych oficjalnych załączników 1a i 9 uruchom:
-
-```bash
-python3 scripts/import_nfz_reference.py /ścieżka/do/Zalacznik1a.xlsx /ścieżka/do/Zalacznik9.xlsx
-```
-
-Importer sprawdza komplet grup i tworzy podzielone pliki `data/jgp-data-*.js` oraz `data/jgp-characteristics-*.js`, używane także offline.
+Wersja 1.1 korzysta z oficjalnych załączników 1a i 9 do zarządzenia 46/2026/DSOZ. Automat wykrywania nowych danych jest oznaczony w aplikacji jako testowy: nowa wersja nie zastępuje danych rozliczeniowych bez kontroli kompletności. Pełny bezobsługowy importer zostanie dołączony w kolejnej aktualizacji.
 
 Publiczny profil zakresu umowy można odświeżyć poleceniem:
 
@@ -106,7 +106,7 @@ Plik `data/mz-legislation.json` można sprawdzić ręcznie poleceniem:
 npm run sync:legislation
 ```
 
-Workflow `.github/workflows/update-mz-legislation.yml` uruchamia to samo zadanie codziennie i zapisuje zmianę tylko w pliku danych. Skrypt scala nowe pozycje z dotychczasowym rejestrem, dlatego raz wykryty projekt nie znika z aplikacji. Do repozytorium trafiają wyłącznie tytuł, metryka i link do projektu — bez treści załączników. Gdy RCL zwróci zero projektów, zadanie kończy się błędem i nie nadpisuje ostatniego poprawnego rejestru.
+Workflow `.github/workflows/update-mz-legislation.yml` uruchamia to samo zadanie dwa razy dziennie i zapisuje zmianę tylko w pliku danych. Skrypt scala nowe pozycje z dotychczasowym rejestrem, dlatego raz wykryty projekt nie znika z aplikacji. Do repozytorium trafiają wyłącznie tytuł, metryka i link do projektu — bez treści załączników. Gdy RCL zwróci zero projektów, zadanie kończy się błędem i nie nadpisuje ostatniego poprawnego rejestru.
 
 Pięciozdaniowe streszczenia mają osobny status `pending` albo `ready`. GitHub Actions nie wysyła dokumentów do OpenAI API; gotowe streszczenia mogą zostać uzupełnione w kontrolowanym procesie pracy z ChatGPT.
 

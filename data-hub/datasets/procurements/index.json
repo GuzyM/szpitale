@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "dataset": "procurements",
-  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "generatedAt": "2026-07-31T01:20:00+02:00",
   "recordCount": 3,
   "partitionStrategy": "year",
   "partitions": [

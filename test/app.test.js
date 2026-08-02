@@ -44,6 +44,7 @@ function createApp(legislationOverride = null) {
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "nfz-coefficients.js"), "utf8"));
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "cost-accounting-regulation.js"), "utf8"));
   dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "cost-accounting.js"), "utf8"));
+  dom.window.eval(fs.readFileSync(path.join(ROOT, "data", "key-change.js"), "utf8"));
   dom.window.fetch = async (request) => {
     const url = String(request).split("?")[0];
     let payload;
@@ -149,13 +150,17 @@ test("HospitalAPP opens on a separate modern module home screen", () => {
   assert.equal(document.querySelector("#gruper-screen").hidden, true);
   assert.match(document.querySelector("#home-title").textContent, /analizy szpitala/i);
   assert.equal(document.querySelector("#open-gruper").disabled, false);
-  assert.equal(document.querySelectorAll(".module-card:disabled").length, 2);
+  assert.equal(document.querySelectorAll(".module-card:disabled").length, 1);
   assert.equal(document.querySelector("#open-payroll").disabled, false);
   assert.equal(document.querySelector("#open-cost-accounting").disabled, false);
+  assert.equal(document.querySelector("#open-key-change").disabled, false);
+  assert.equal(document.querySelector("#open-nfz-services").disabled, false);
   assert.match(document.querySelector(".dashboard-grid").textContent, /Skutki wzrostu płac/);
   assert.match(document.querySelector(".dashboard-grid").textContent, /Rachunek kosztów/);
   assert.equal(document.querySelector("#open-legislation").disabled, false);
   assert.equal(document.querySelector("#open-procurements").disabled, false);
+  assert.doesNotMatch(document.querySelector(".dashboard-grid").textContent, /Pilot 1\.0|Zalążek 0\.9/);
+  assert.match(document.querySelector("#open-key-change").textContent, /Kluczowa zmiana/i);
 });
 
 test("Data Hub procurement pilot searches processed records without storing documents", async () => {
@@ -167,24 +172,75 @@ test("Data Hub procurement pilot searches processed records without storing docu
 
   assert.equal(document.querySelector("#procurements-screen").hidden, false);
   assert.equal(document.querySelectorAll("#procurements-results .procurement-card").length, 3);
-  assert.match(document.querySelector("#procurements-results").textContent, /Szpital Tucholski/i);
+  assert.match(document.querySelector("#procurements-results").textContent, /Szpital Uniwersytecki w Krakowie/i);
+  assert.match(document.querySelector("#procurements-results").textContent, /Szpital Kliniczny/i);
   assert.match(document.querySelector("#procurements-results").textContent, /Projekt umowy/i);
   assert.match(document.querySelector("#procurements-results").textContent, /Nie wyodrębniono/i);
 
   const searchInput = document.querySelector("#procurements-search");
-  searchInput.value = "Zabrze materiały";
+  searchInput.value = "Poznaniu materiały";
   document.querySelector("#procurements-search-form").dispatchEvent(
     new dom.window.Event("submit", { bubbles: true, cancelable: true })
   );
   await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
 
   assert.equal(document.querySelectorAll("#procurements-results .procurement-card").length, 1);
-  assert.match(document.querySelector("#procurements-results").textContent, /DZP\/29 TP\/2025/i);
+  assert.match(document.querySelector("#procurements-results").textContent, /DZP\/APT\/39\/2025/i);
   assert.equal(
     Array.from(document.querySelectorAll(".procurement-card a"))
-      .every((link) => link.hostname === "ezamowienia.gov.pl"),
+      .every((link) => link.hostname === "platformazakupowa.pl"),
     true
   );
+});
+
+test("gold key-change module explains UD439 in nine management tiles", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-key-change").click();
+
+  assert.equal(document.querySelector("#key-change-screen").hidden, false);
+  assert.equal(document.querySelectorAll("#key-change-tiles .key-change-tile").length, 9);
+  assert.match(document.querySelector("#key-change-screen").textContent, /To jeszcze nie jest prawo/i);
+  assert.match(document.querySelector("#key-change-screen").textContent, /Wynagrodzenia/i);
+  assert.match(document.querySelector("#key-change-screen").textContent, /Etaty i czas pracy/i);
+  assert.match(document.querySelector("#key-change-screen").textContent, /Kogo obejmuje/i);
+  assert.match(document.querySelector("#key-hourly-limit").textContent, /240,30/);
+  assert.match(document.querySelector("#key-monthly-limit").textContent, /38[\s\u00a0]?448,00/);
+  assert.match(document.querySelector("#key-total-limit").textContent, /76[\s\u00a0]?896,00/);
+  assert.equal(document.querySelectorAll("#key-change-actions li").length, 6);
+  assert.equal(document.querySelector("#key-change-project").hostname, "legislacja.gov.pl");
+});
+
+test("unfinished modules are clearly marked as test versions with full versions coming soon", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+
+  assert.match(document.querySelector("#open-procurements").textContent, /Wersja testowa/i);
+  assert.match(document.querySelector("#open-nfz-services").textContent, /Wersja testowa/i);
+  assert.match(document.querySelector(".module-card:disabled").textContent, /Pełna wersja wkrótce/i);
+
+  document.querySelector("#open-nfz-services").click();
+  assert.equal(document.querySelector("#nfz-services-screen").hidden, false);
+  assert.equal(document.querySelectorAll(".nfz-service-card.is-ready").length, 1);
+  assert.equal(document.querySelectorAll(".nfz-service-card:not(.is-ready)").length, 5);
+  assert.match(document.querySelector("#nfz-services-screen").textContent, /pełni działa wyłącznie katalog JGP/i);
+});
+
+test("private notes save the current module context only on the device", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-key-change").click();
+  document.querySelector("#notes-button").click();
+  const note = document.querySelector("#notes-input");
+  note.value = "Sprawdzić umowy lekarzy kontraktowych.";
+  document.querySelector("#notes-save").click();
+
+  const saved = JSON.parse(dom.window.localStorage.getItem("hospitalapp-local-notes-v1"));
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].context, "Kluczowa zmiana · UD439");
+  assert.equal(saved[0].text, "Sprawdzić umowy lekarzy kontraktowych.");
+  assert.match(document.querySelector("#notes-list").textContent, /Sprawdzić umowy/i);
+  assert.equal(document.querySelector("#notes-count").textContent, "1");
 });
 
 test("Rachunek kosztów searches the regulation and exposes 20 practical questions", () => {
@@ -237,6 +293,39 @@ test("payroll impact calculator uses all 10 statutory groups and official 2026 b
   assert.match(document.querySelector("#payroll-monthly-result").textContent, /1[\s\u00a0]?261,03/);
   assert.match(document.querySelector("#payroll-halfyear-result").textContent, /7[\s\u00a0]?566,15/);
   assert.match(document.querySelector("#payroll-year-result").textContent, /15[\s\u00a0]?132,31/);
+});
+
+test("payroll oncost toggle changes the result and has a clear checked state", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-payroll").click();
+  const groupOne = document.querySelector('[data-payroll-headcount="1"]');
+  groupOne.value = "1";
+  input(dom.window, groupOne);
+  const withOncost = document.querySelector("#payroll-monthly-result").textContent;
+  const toggle = document.querySelector("#payroll-include-oncost");
+  assert.equal(toggle.checked, true);
+
+  toggle.checked = false;
+  change(dom.window, toggle);
+  assert.notEqual(document.querySelector("#payroll-monthly-result").textContent, withOncost);
+  assert.match(document.querySelector("#payroll-monthly-result").textContent, /1[\s\u00a0]?046,67/);
+  assert.match(document.querySelector("#payroll-result-mode").textContent, /zasadnicze/i);
+});
+
+test("each payroll group can reveal its full statutory composition", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  document.querySelector("#open-payroll").click();
+  const toggle = document.querySelector('[data-payroll-group-toggle="2"]');
+  const description = document.querySelector("#payroll-group-description-2");
+  assert.equal(description.hidden, true);
+
+  toggle.click();
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+  assert.equal(description.hidden, false);
+  assert.match(description.textContent, /Farmaceuta, fizjoterapeuta, diagnosta laboratoryjny/i);
+  assert.match(description.textContent, /pielęgniarka lub położna/i);
 });
 
 test("entering Gruper first asks how the user wants to search", () => {
@@ -482,6 +571,17 @@ test("legislation user labels are private and saved on the device", async () => 
   assert.equal(saved["rcl-1001"].important, true);
 });
 
+test("stale legislation is never presented as current", () => {
+  const fixture = legislationFixture();
+  fixture.meta.checkedAt = "2026-01-01T00:00:00+00:00";
+  const dom = createApp(fixture);
+  const { document } = dom.window;
+
+  assert.equal(document.querySelector("#legislation-status").textContent, "Dane opóźnione");
+  assert.match(document.querySelector("#legislation-freshness-note").textContent, /ponad 36 godzin/i);
+  assert.equal(document.querySelector(".legislation-status-card").classList.contains("is-stale"), true);
+});
+
 test("coefficients can be removed and remain isolated to their JGP group", () => {
   const dom = createApp();
   const { document } = dom.window;
@@ -526,6 +626,26 @@ test("N01 grouping is shown as two readable paths with labelled lists", () => {
   assert.equal(document.querySelectorAll("#grouping-rules .rule-connector").length, 0);
   assert.equal(document.querySelectorAll("#grouping-rules .rule-chip").length > 0, true);
   assert.equal(document.querySelectorAll("#direct-code-lists .system-icd-10").length, 1);
+});
+
+test("clicking a grouping chip opens and highlights the referenced ICD list", () => {
+  const dom = createApp();
+  const { document } = dom.window;
+  openGruper(dom);
+  search(dom, "N01");
+  const chip = document.querySelector("#grouping-rules [data-open-list-code]");
+  assert.ok(chip);
+  const code = chip.dataset.openListCode;
+  const type = chip.dataset.openListType;
+  const target = Array.from(document.querySelectorAll(`.code-list[data-list-code="${code}"]`))
+    .find((item) => item.dataset.listType === type)
+    || document.querySelector(`.code-list[data-list-code="${code}"]`);
+  assert.ok(target);
+
+  chip.click();
+  assert.equal(target.open, true);
+  assert.equal(target.classList.contains("is-highlighted"), true);
+  assert.equal(target.querySelectorAll("li").length > 0, true);
 });
 
 test("technical list markers do not become fake grouping paths", () => {
@@ -615,9 +735,10 @@ test("manifest and offline shell reference all core files", () => {
   for (const file of [
     "index.html", "app.css", "data/jgp-data-meta.js", "data/jgp-data-04.js",
     "data/jgp-characteristics-meta.js", "data/jgp-characteristics-14.js",
-    "data/nfz-contract.js", "data-hub.js", "data-hub/manifest.json",
+    "data/nfz-contract.js", "data/key-change.js", "data-hub.js", "data-hub/manifest.json",
     "data-hub/datasets/procurements/index.json", "app.js", "manifest.webmanifest"
   ]) {
     assert.match(worker, new RegExp(file.replace(".", "\\.")));
   }
+  assert.match(worker, /hospitalapp-v1\.1\.0/);
 });

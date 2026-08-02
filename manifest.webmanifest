@@ -2,7 +2,7 @@
   "id": "./index.html",
   "name": "HospitalAPP",
   "short_name": "HospitalAPP",
-  "description": "Publiczne dane i narzędzia dla zarządzających szpitalami: JGP, przetargi, legislacja, rachunek kosztów i kalkulatory.",
+  "description": "Publiczna beta dla zarządzających szpitalami: kluczowe zmiany, JGP, przetargi kliniczne, legislacja, rachunek kosztów i kalkulatory.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",

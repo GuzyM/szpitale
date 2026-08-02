@@ -1,28 +1,29 @@
 {
   "schemaVersion": "1.0.0",
   "dataset": "procurements",
-  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "generatedAt": "2026-07-31T01:20:00+02:00",
   "partition": {
     "key": "2022",
     "immutable": true
   },
   "records": [
     {
-      "id": "bzp:ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+      "id": "bzp:platformazakupowa-647716",
       "hospital": {
-        "name": "Szpital Miejski w Siemianowicach Śląskich Sp. z o.o.",
+        "name": "Szpital Uniwersytecki w Krakowie",
+        "kind": "clinical",
         "krs": null,
         "regon": null
       },
-      "subject": "Usługa sterylizacji narzędzi medycznych dla potrzeb Szpitala Miejskiego",
-      "referenceNumber": "SZM/DZ/341/34/2022",
+      "subject": "Kompleksowe mycie, dezynfekcja i sterylizacja sprzętu oraz narzędzi medycznych, w tym sterylizacja tlenkiem etylenu",
+      "referenceNumber": "DFP.271.85.2022.LS",
       "category": "Usługi sterylizacji",
       "cpv": [],
-      "status": "Zakończone – zawarta umowa",
+      "status": "Zakończone – opublikowano wynik",
       "dates": {
-        "published": null,
-        "updated": null,
-        "awarded": null
+        "published": "2022-08-03",
+        "updated": "2023-05-10",
+        "awarded": "2023-02-16"
       },
       "value": {
         "amount": null,
@@ -36,23 +37,41 @@
       },
       "documents": [
         {
+          "type": "swz",
+          "title": "SWZ i opis przedmiotu zamówienia",
+          "url": "https://platformazakupowa.pl/transakcja/647716",
+          "availability": "source-page"
+        },
+        {
           "type": "draft-contract",
-          "title": "Projekt umowy – dostępny w dokumentach postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+          "title": "Wzór umowy – załącznik nr 3",
+          "url": "https://platformazakupowa.pl/transakcja/647716",
+          "availability": "source-page"
+        },
+        {
+          "type": "questions-and-answers",
+          "title": "Pytania, odpowiedzi i modyfikacje SWZ",
+          "url": "https://platformazakupowa.pl/transakcja/647716",
+          "availability": "source-page"
+        },
+        {
+          "type": "award",
+          "title": "Wynik i ogłoszenie o udzieleniu zamówienia",
+          "url": "https://platformazakupowa.pl/transakcja/647716",
           "availability": "source-page"
         },
         {
           "type": "source",
           "title": "Pełna karta postępowania",
-          "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
+          "url": "https://platformazakupowa.pl/transakcja/647716",
           "availability": "source-page"
         }
       ],
       "source": {
-        "system": "BZP / e-Zamówienia",
-        "sourceId": "ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
-        "url": "https://ezamowienia.gov.pl/mp-client/search/list/ocds-148610-3d2c8114-8135-11ed-b4ea-f64d350121d2",
-        "retrievedAt": "2026-07-25T00:00:00+02:00"
+        "system": "Platforma Zakupowa / BZP",
+        "sourceId": "647716",
+        "url": "https://platformazakupowa.pl/transakcja/647716",
+        "retrievedAt": "2026-07-31T01:20:00+02:00"
       },
       "aiSummary": {
         "status": "pending",

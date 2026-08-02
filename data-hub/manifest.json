@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "productVersion": "1.0.0",
-  "generatedAt": "2026-07-25T00:00:00+02:00",
+  "generatedAt": "2026-07-31T01:20:00+02:00",
   "description": "Publiczny katalog zbiorów danych HospitalAPP. Dane użytkownika nie są częścią Data Hub.",
   "datasets": {
     "jgp": {
@@ -39,7 +39,7 @@
       "schema": "./data-hub/schemas/procurement.schema.json",
       "indexPath": "./data-hub/datasets/procurements/index.json",
       "recordCount": 3,
-      "updatedAt": "2026-07-25",
+      "updatedAt": "2026-07-31",
       "sourceIds": [
         "bzp"
       ]

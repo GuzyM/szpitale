@@ -3,6 +3,7 @@ name: Aktualizacja legislacji MZ
 on:
   schedule:
     - cron: "17 4 * * *"
+    - cron: "17 16 * * *"
   workflow_dispatch:
   push:
     paths:

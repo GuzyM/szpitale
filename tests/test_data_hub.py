@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -29,6 +30,17 @@ class DataHubValidationTests(unittest.TestCase):
             )
         )
         self.assertTrue(keys.intersection(MODULE.FORBIDDEN_CONTENT_KEYS))
+
+    def test_non_clinical_procurement_is_rejected(self):
+        shard = json.loads(
+            (ROOT / "data-hub/datasets/procurements/shards/2022.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        record = shard["records"][0]
+        record["hospital"]["kind"] = "general"
+        with self.assertRaisesRegex(ValueError, "wyłącznie szpitale kliniczne"):
+            MODULE.validate_procurement(record, set(), "testowy rekord")
 
 
 if __name__ == "__main__":

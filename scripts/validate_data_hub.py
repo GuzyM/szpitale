@@ -84,6 +84,8 @@ def validate_procurement(record: dict, seen_ids: set[str], context: str) -> None
         fail(f"{context}: identyfikator musi wskazywać system źródłowy")
     if len(str(record["hospital"].get("name") or "").strip()) < 2:
         fail(f"{context}: brak nazwy szpitala")
+    if record["hospital"].get("kind") != "clinical":
+        fail(f"{context}: moduł przetargów publikuje wyłącznie szpitale kliniczne")
     if len(str(record["subject"] or "").strip()) < 3:
         fail(f"{context}: brak przedmiotu postępowania")
     validate_https(record["source"].get("url", ""), f"{context}.source.url")
