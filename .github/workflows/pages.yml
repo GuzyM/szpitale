@@ -23,6 +23,19 @@ jobs:
     steps:
       - name: Pobierz pliki
         uses: actions/checkout@v4
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Ustaw Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Zainstaluj zależności
+        run: npm ci
+      - name: Sprawdź aplikację i dane
+        run: npm test && npm run validate:data-hub
       - name: Skonfiguruj GitHub Pages
         uses: actions/configure-pages@v5
         with:

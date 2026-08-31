@@ -32,6 +32,7 @@ const MODE_LABELS = {
   ordinary: "Hospitalizacja",
   planned: "Hospitalizacja planowa",
   oneDayTreatment: "Leczenie jednego dnia",
+  under12h: "Pobyt dzienny do 12 godzin",
   sameDay: "Przyjęcie i wypis tego samego dnia",
   oneDayHosp: "Hospitalizacja 1-dniowa",
   twoDayHosp: "Hospitalizacja 2-dniowa"
@@ -298,7 +299,7 @@ function defaultState() {
     customProviderName: "",
     customProviderCode: "",
     modeByGroup: {},
-    priceSource: "contract",
+    priceSource: "custom",
     customPrice: 1.96,
     coefficientEnabledByGroup: {},
     coefficientsByGroup: {}

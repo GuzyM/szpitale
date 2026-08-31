@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b6b61">
-  <meta name="description" content="HospitalAPP: publiczne dane dla zarządzających szpitalami, Gruper JGP, przetargi, legislacja, rachunek kosztów i kalkulatory.">
+  <meta name="description" content="HospitalAPP: aktualny Gruper JGP i praktyczne narzędzia dla osób zarządzających szpitalami.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HospitalAPP">
@@ -24,7 +24,7 @@
         <div id="brand-mark" class="brand-mark" aria-hidden="true">H</div>
       </div>
       <div class="brand-copy">
-        <p id="topbar-eyebrow" class="eyebrow">Centrum analityki szpitalnej</p>
+        <p id="topbar-eyebrow" class="eyebrow">Narzędzia dla szpitali</p>
         <h1 id="topbar-title">HospitalAPP</h1>
       </div>
       <div class="topbar-actions">
@@ -41,9 +41,9 @@
     <main>
       <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
         <section class="home-hero">
-          <span class="home-kicker">Dane publiczne · narzędzia zarządcze</span>
-          <h2 id="home-title">Wszystko, czego potrzebujesz do analizy szpitala.</h2>
-          <p>Wybierz moduł. HospitalAPP prowadzi od danych NFZ do czytelnej kalkulacji.</p>
+          <span class="home-kicker">HospitalAPP · wersja dla testerów</span>
+          <h2 id="home-title">Sprawdź JGP. Podejmij decyzję.</h2>
+          <p>Aktualne katalogi NFZ, warunki grupowania i prosta wycena — bez przekopywania arkuszy.</p>
           <div class="home-data-status">
             <span class="live-dot" aria-hidden="true"></span>
             <span id="home-data-label">Aktualne dane JGP</span>
@@ -81,7 +81,7 @@
             <span class="module-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button class="module-card" type="button" disabled>
+          <button class="module-card" type="button" disabled hidden>
             <span class="module-icon module-icon-blue" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
             </span>
@@ -92,7 +92,7 @@
             <span class="module-state">Pełna wersja wkrótce</span>
           </button>
 
-          <button id="open-procurements" class="module-card module-card-procurements" type="button">
+          <button id="open-procurements" class="module-card module-card-procurements" type="button" hidden>
             <span class="module-icon module-icon-procurements" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/><path d="m15 16 2 2 3-4"/></svg>
             </span>
@@ -113,7 +113,7 @@
             </span>
           </button>
 
-          <button id="open-nfz-services" class="module-card module-card-nfz-services" type="button">
+          <button id="open-nfz-services" class="module-card module-card-nfz-services" type="button" hidden>
             <span class="module-icon module-icon-purple" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M4 20h16M6 17V8h12v9M9 8V5h6v3M9 12h2m2 0h2m-6 3h2m2 0h2"/></svg>
             </span>
@@ -160,7 +160,7 @@
       </section>
 
       <section id="gruper-screen" class="screen gruper-screen" aria-labelledby="search-label" hidden>
-        <section class="provider-section surface-card" aria-labelledby="provider-title">
+        <section class="provider-section surface-card" aria-labelledby="provider-title" hidden>
           <div class="section-heading compact">
             <div>
               <p class="eyebrow">Profil rozliczeniowy</p>
@@ -203,10 +203,10 @@
             <svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.4 6.4L4 9m16 6-2.4 2.6A7 7 0 0 1 5.5 15"/></svg>
           </span>
           <span>
-            <strong>Katalog JGP · 46/2026/DSOZ</strong>
-            <small>702 grupy i pełna charakterystyka. Automatyczne wykrywanie nowej wersji: <b>wersja testowa — pełne bezobsługowe wczytanie po kontroli danych już wkrótce.</b></small>
+            <strong>Katalog JGP · 74/2026/DSOZ</strong>
+            <small>Oficjalne katalogi 1a i 1ae oraz charakterystyka JGP. Obowiązują od 1 lipca 2026 r.</small>
           </span>
-          <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Źródło NFZ ↗</a>
+          <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-742026dsoz%2C7958.html" target="_blank" rel="noopener">Źródło NFZ ↗</a>
         </aside>
 
         <section class="search-section" aria-labelledby="search-label">
@@ -260,7 +260,7 @@
             </div>
           </div>
 
-          <section id="contract-panel" class="contract-panel" aria-labelledby="contract-title">
+          <section id="contract-panel" class="contract-panel" aria-labelledby="contract-title" hidden>
             <div class="contract-heading">
               <div>
                 <p class="eyebrow">Publiczne dane wybranej placówki</p>
@@ -314,7 +314,7 @@
               <span>Tryb hospitalizacji</span>
               <select id="hospitalization-mode"></select>
             </label>
-            <fieldset class="price-source-fieldset">
+            <fieldset class="price-source-fieldset" hidden>
               <legend>Źródło ceny punktu</legend>
               <div class="price-source-options">
                 <label id="contract-price-choice" class="price-source-choice">
@@ -325,7 +325,7 @@
                   </span>
                 </label>
                 <label class="price-source-choice">
-                  <input id="price-source-custom" type="radio" name="price-source" value="custom">
+                  <input id="price-source-custom" type="radio" name="price-source" value="custom" checked>
                   <span>
                     <strong>Własna</strong>
                     <small>wpisz ręcznie</small>
@@ -490,21 +490,19 @@
 
         <aside class="notice">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-          <p>Punktacje i warunki grupowania pochodzą z katalogów NFZ. Cena umowna pochodzi z publicznego API NFZ. Współczynniki i wynik kalkulacji wymagają potwierdzenia z aktualną umową i zasadami rozliczeń.</p>
+          <p>Punktacje i warunki grupowania pochodzą z katalogów NFZ. Własna cena punktu, współczynniki i wynik kalkulacji wymagają potwierdzenia z zasadami rozliczeń Twojej placówki.</p>
         </aside>
 
         <details class="sources">
           <summary>Wersja danych i źródła</summary>
           <div>
-            <p><strong id="source-order">46/2026/DSOZ</strong> · zarządzenie z 30.04.2026 r.</p>
-            <p><span id="source-catalog">Załącznik 1a – katalog grup</span> · <span id="source-count">702 grupy JGP</span>.</p>
-            <p id="source-characteristics">Załącznik 9 – charakterystyka JGP.</p>
-            <p><strong id="source-api-label">API Umowy NFZ</strong> · aktualizacja profilu: <span id="source-api-date">—</span>.</p>
-            <p>Cena własna, placówka własna i współczynniki są zapisywane wyłącznie na urządzeniu.</p>
-            <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-462026dsoz%2C7938.html" target="_blank" rel="noopener">Zarządzenie NFZ 46/2026/DSOZ</a>
-            <a href="https://api.nfz.gov.pl/" target="_blank" rel="noopener">API Umowy NFZ</a>
-            <a href="https://aplikacje.nfz.gov.pl/umowy/Provider/Search?Branch=06" target="_blank" rel="noopener">Informator o umowach · Małopolska</a>
-            <p class="source-disclaimer">Źródło danych umownych: Narodowy Fundusz Zdrowia. Obliczenia i układ danych przygotowuje HospitalAPP; aplikacja nie jest produktem NFZ.</p>
+            <p><strong id="source-order">74/2026/DSOZ</strong> · katalogi obowiązujące od 01.07.2026 r.</p>
+            <p><span id="source-catalog">Załącznik 1 – katalogi grup 1a i 1ae</span> · <span id="source-count">748 grup JGP</span>.</p>
+            <p id="source-characteristics">Załącznik 9 – charakterystyka JGP 1a i 1ae.</p>
+            <p hidden><strong id="source-api-label">API Umowy NFZ</strong> · aktualizacja profilu: <span id="source-api-date">—</span>.</p>
+            <p>Cena punktu i współczynniki są zapisywane wyłącznie na urządzeniu.</p>
+            <a href="https://www.nfz.gov.pl/zarzadzenia-prezesa/zarzadzenia-prezesa-nfz/zarzadzenie-nr-742026dsoz%2C7958.html" target="_blank" rel="noopener">Zarządzenie NFZ 74/2026/DSOZ</a>
+            <p class="source-disclaimer">Źródło katalogów: Narodowy Fundusz Zdrowia. Obliczenia i układ danych przygotowuje HospitalAPP; aplikacja nie jest produktem NFZ.</p>
           </div>
         </details>
       </section>
@@ -934,7 +932,7 @@
 
     <footer>
       <span>HospitalAPP</span>
-      <span>Publiczna beta · Data Hub</span>
+      <span>Wersja 1.2 · dla testerów</span>
     </footer>
   </div>
 
@@ -1003,7 +1001,6 @@
   <script src="data/jgp-characteristics-12.js" defer></script>
   <script src="data/jgp-characteristics-13.js" defer></script>
   <script src="data/jgp-characteristics-14.js" defer></script>
-  <script src="data/nfz-contract.js" defer></script>
   <script src="data/nfz-coefficients.js" defer></script>
   <script src="data/cost-accounting-regulation.js" defer></script>
   <script src="data/cost-accounting.js" defer></script>

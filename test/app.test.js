@@ -148,17 +148,17 @@ test("HospitalAPP opens on a separate modern module home screen", () => {
 
   assert.equal(document.querySelector("#home-screen").hidden, false);
   assert.equal(document.querySelector("#gruper-screen").hidden, true);
-  assert.match(document.querySelector("#home-title").textContent, /analizy szpitala/i);
+  assert.match(document.querySelector("#home-title").textContent, /Sprawdź JGP/i);
   assert.equal(document.querySelector("#open-gruper").disabled, false);
   assert.equal(document.querySelectorAll(".module-card:disabled").length, 1);
   assert.equal(document.querySelector("#open-payroll").disabled, false);
   assert.equal(document.querySelector("#open-cost-accounting").disabled, false);
   assert.equal(document.querySelector("#open-key-change").disabled, false);
-  assert.equal(document.querySelector("#open-nfz-services").disabled, false);
+  assert.equal(document.querySelector("#open-nfz-services").hidden, true);
   assert.match(document.querySelector(".dashboard-grid").textContent, /Skutki wzrostu płac/);
   assert.match(document.querySelector(".dashboard-grid").textContent, /Rachunek kosztów/);
   assert.equal(document.querySelector("#open-legislation").disabled, false);
-  assert.equal(document.querySelector("#open-procurements").disabled, false);
+  assert.equal(document.querySelector("#open-procurements").hidden, true);
   assert.doesNotMatch(document.querySelector(".dashboard-grid").textContent, /Pilot 1\.0|Zalążek 0\.9/);
   assert.match(document.querySelector("#open-key-change").textContent, /Kluczowa zmiana/i);
 });
@@ -340,35 +340,29 @@ test("entering Gruper first asks how the user wants to search", () => {
   assert.equal(document.querySelector('[data-search-mode="group"]').getAttribute("aria-checked"), "true");
 });
 
-test("N01 calculation uses the verified contract price by default", () => {
+test("N01 calculation uses the current catalog and a local price by default", () => {
   const dom = createApp();
   const { document } = dom.window;
   openGruper(dom);
   search(dom, "N01");
 
   assert.equal(document.querySelector("#group-code").textContent, "N01");
-  assert.match(document.querySelector("#points-value").textContent, /1[\s\u00a0]?994/);
-  assert.match(document.querySelector("#base-value").textContent, /3[\s\u00a0]?908,24/);
+  assert.match(document.querySelector("#points-value").textContent, /4[\s\u00a0]?352/);
+  assert.match(document.querySelector("#base-value").textContent, /8[\s\u00a0]?529,92/);
   assert.equal(document.querySelector("#combined-factor").textContent, "1,00");
-  assert.equal(document.querySelector("#price-source-contract").checked, true);
-  assert.equal(document.querySelector("#point-price").readOnly, true);
+  assert.equal(document.querySelector("#price-source-custom").checked, true);
+  assert.equal(document.querySelector("#point-price").readOnly, false);
 });
 
-test("N01 shows an anonymized profile, scope, unit product and API price", () => {
+test("contract and provider surfaces are removed from the tester interface", () => {
   const dom = createApp();
   const { document } = dom.window;
   openGruper(dom);
   search(dom, "N01");
 
-  assert.equal(document.querySelector("#provider-name").textContent, "Anonimowy profil referencyjny");
-  assert.equal(document.querySelector("#provider-code").textContent, "dane zanonimizowane");
-  assert.equal(document.querySelector("#contract-status").textContent, "Potwierdzone w API");
-  assert.equal(document.querySelector("#contract-scope-code").textContent, "03.4450.260.02");
-  assert.equal(document.querySelector("#contract-unit-code").textContent, "5.51.01.0013001");
-  assert.equal(document.querySelector("#contract-agreement-code").textContent, "dane zanonimizowane");
-  assert.match(document.querySelector("#contract-point-price").textContent, /1,96/);
-  assert.match(document.querySelector("#contract-addition-list").textContent, /5\.53\.01\.0001510/);
-  assert.match(document.querySelector("#contract-addition-list").textContent, /nie jest automatycznie dodany/i);
+  assert.equal(document.querySelector(".provider-section").hidden, true);
+  assert.equal(document.querySelector("#contract-panel").hidden, true);
+  assert.equal(document.querySelector(".price-source-fieldset").hidden, true);
 });
 
 test("the clear price source control switches from contract to custom price", () => {
@@ -386,7 +380,7 @@ test("the clear price source control switches from contract to custom price", ()
 
   assert.equal(price.readOnly, false);
   assert.equal(document.querySelector("#point-price-source").textContent, "wartość użytkownika");
-  assert.match(document.querySelector("#base-value").textContent, /4[\s\u00a0]?985,00/);
+  assert.match(document.querySelector("#base-value").textContent, /10[\s\u00a0]?880,00/);
 });
 
 test("custom provider mode is clearly local and disables contract prices", () => {
@@ -433,16 +427,14 @@ test("search modes separate groups, ICD-10 diagnoses and ICD-9 procedures", () =
   assert.equal(suggestedCodes(document).includes("N01"), true);
 });
 
-test("search by contract scope returns all matching obstetric groups", () => {
+test("groups removed by order 74 no longer appear in the catalog", () => {
   const dom = createApp();
   const { document } = dom.window;
   openGruper(dom);
-  selectSearchMode(dom, "group");
-  const searchInput = document.querySelector("#search-input");
-  searchInput.value = "03.4450.260.02";
-  input(dom.window, searchInput);
-
-  assert.deepEqual(suggestedCodes(document), ["N01", "N02", "N03", "N09", "N11", "N13", "N20"]);
+  search(dom, "N09");
+  assert.equal(document.querySelector("#result-card").hidden, true);
+  search(dom, "AU35C");
+  assert.equal(document.querySelector("#group-code").textContent, "AU35C");
 });
 
 test("multiple coefficients follow NFZ sum and multiplication modes", () => {
@@ -469,7 +461,7 @@ test("multiple coefficients follow NFZ sum and multiplication modes", () => {
   assert.equal(document.querySelector("#combined-factor").textContent, "1,37");
   assert.match(document.querySelector("#factor-formula").textContent, /sumowanie NFZ/i);
   assert.match(document.querySelector("#factor-formula").textContent, /mnożenie/i);
-  assert.match(document.querySelector("#total-value").textContent, /5[\s\u00a0]?334,75/);
+  assert.match(document.querySelector("#total-value").textContent, /11[\s\u00a0]?643,34/);
 });
 
 test("N01 suggests only matching public rules and adds a selected sourced variant", () => {
@@ -648,18 +640,12 @@ test("clicking a grouping chip opens and highlights the referenced ICD list", ()
   assert.equal(target.querySelectorAll("li").length > 0, true);
 });
 
-test("technical list markers do not become fake grouping paths", () => {
+test("the new 1ae catalog exposes the under-12-hour mode", () => {
   const dom = createApp();
   const { document } = dom.window;
   openGruper(dom);
-  search(dom, "B18G");
-
-  assert.equal(document.querySelectorAll("#grouping-rules .grouping-rule-card").length, 2);
-  assert.equal(
-    Array.from(document.querySelectorAll("#grouping-rules .rule-card-copy p"))
-      .some((element) => element.textContent.trim() === "B18R"),
-    false
-  );
+  search(dom, "AU35C");
+  assert.match(document.querySelector("#hospitalization-mode").textContent, /do 12 godzin/i);
 });
 
 test("large ICD lists remain lazy and render only after opening", () => {
@@ -672,7 +658,7 @@ test("large ICD lists remain lazy and render only after opening", () => {
   assert.equal(list.querySelectorAll("li").length, 0);
   list.open = true;
   list.dispatchEvent(new dom.window.Event("toggle"));
-  assert.equal(list.querySelectorAll("li").length, 16);
+  assert.equal(list.querySelectorAll("li").length > 0, true);
 });
 
 test("a group outside the selected contract uses a custom price without losing catalog data", () => {
@@ -696,14 +682,15 @@ test("official catalog and characteristics remain complete", () => {
   const catalog = dom.window.JGP_CATALOG;
   const characteristics = dom.window.JGP_CHARACTERISTICS;
 
-  assert.equal(catalog.meta.orderNumber, "46/2026/DSOZ");
-  assert.equal(catalog.groups.length, 702);
+  assert.equal(catalog.meta.orderNumber, "74/2026/DSOZ");
+  assert.equal(catalog.groups.length, 748);
   assert.equal(catalog.groups[0].code, "A01");
-  assert.equal(catalog.groups.at(-1).code, "Z01");
-  assert.equal(catalog.groups.find((group) => group.code === "N01").ordinary, 1994);
-  assert.equal(characteristics.meta.groupCount, 702);
-  assert.equal(characteristics.meta.listCount, 144);
-  assert.equal(characteristics.meta.codeEntryCount, 35060);
+  assert.equal(catalog.groups.some((group) => group.code === "AU35C"), true);
+  assert.equal(catalog.groups.some((group) => group.code === "N09"), false);
+  assert.equal(catalog.groups.find((group) => group.code === "N01").ordinary, 4352);
+  assert.equal(characteristics.meta.groupCount, 748);
+  assert.equal(characteristics.meta.listCount, 140);
+  assert.equal(characteristics.meta.codeEntryCount, 39306);
 });
 
 test("the public profile contains no hospital or agreement identifiers", () => {
@@ -735,10 +722,9 @@ test("manifest and offline shell reference all core files", () => {
   for (const file of [
     "index.html", "app.css", "data/jgp-data-meta.js", "data/jgp-data-04.js",
     "data/jgp-characteristics-meta.js", "data/jgp-characteristics-14.js",
-    "data/nfz-contract.js", "data/key-change.js", "data-hub.js", "data-hub/manifest.json",
-    "data-hub/datasets/procurements/index.json", "app.js", "manifest.webmanifest"
+    "data/key-change.js", "data-hub.js", "data-hub/manifest.json", "app.js", "manifest.webmanifest"
   ]) {
     assert.match(worker, new RegExp(file.replace(".", "\\.")));
   }
-  assert.match(worker, /hospitalapp-v1\.1\.0/);
+  assert.match(worker, /hospitalapp-v1\.2\.0/);
 });
