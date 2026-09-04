@@ -2,15 +2,15 @@
   "id": "./index.html",
   "name": "HospitalAPP",
   "short_name": "HospitalAPP",
-  "description": "Publiczna beta dla zarządzających szpitalami: kluczowe zmiany, JGP, przetargi kliniczne, legislacja, rachunek kosztów i kalkulatory.",
+  "description": "Gruper JGP, porównania, legislacja, scenariusze kosztowe i notatnik odprawy.",
   "lang": "pl-PL",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "categories": ["medical", "business", "productivity"],
-  "background_color": "#edf4f2",
-  "theme_color": "#0b6b61",
+  "background_color": "#f3f5f8",
+  "theme_color": "#14273e",
   "icons": [
     {
       "src": "icons/icon-192.png",

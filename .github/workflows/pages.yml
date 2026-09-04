@@ -4,6 +4,9 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Aktualizacja legislacji MZ"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -16,6 +19,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -36,6 +40,8 @@ jobs:
         run: npm ci
       - name: Sprawdź aplikację i dane
         run: npm test && npm run validate:data-hub
+      - name: Zbuduj wyłącznie pliki publiczne
+        run: npm run build
       - name: Skonfiguruj GitHub Pages
         uses: actions/configure-pages@v5
         with:
@@ -43,7 +49,7 @@ jobs:
       - name: Przygotuj stronę
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
       - name: Opublikuj stronę
         id: deployment
         uses: actions/deploy-pages@v4
